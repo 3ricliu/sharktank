@@ -10,29 +10,6 @@
   </head>
   <body>
     <canvas></canvas>
-
-    <script type="application/javascript" src="lib/game.js"></script>
-    <script type="application/javascript" src="lib/gameView.js"></script>
-    <script type="application/javascript" src="lib/util.js"></script>
-    <script type="application/javascript" src="lib/movingObject.js"></script>
-    <script type="application/javascript" src="lib/shark.js"></script>
-    <script type="application/javascript" src="lib/spikes.js"></script>
-    <script type="application/javascript" src="lib/topSpikes.js"></script>
-    <script type="application/javascript" src="lib/bottomSpikes.js"></script>
-    <script type="application/javascript" src="lib/scoreboard.js"></script>
-    <script type="application/javascript" src="vendor/keymaster.js"></script>
-    
-    <script type="text/javascript">
-      (function () {
-        var canvasEl = document.getElementsByTagName("canvas")[0];
-        canvasEl.width = Sharktank.Game.DIM_X;
-        canvasEl.height = Sharktank.Game.DIM_Y;
-
-        var ctx = canvasEl.getContext("2d");
-        var game = new Sharktank.Game();
-        new Sharktank.GameView(game, ctx).start();
-      })();
-    </script>
-
+    <script type="text/javascript" src="bundle.js"/></script>
   </body>
 </html>
