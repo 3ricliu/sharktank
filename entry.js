@@ -15,11 +15,13 @@ var GameView = require("./lib/gameView.js");
 var Util = require("./lib/util.js");
 
 var canvasEl = document.getElementsByTagName("canvas")[0];
-canvasEl.width = Game.DIM_X;8
+canvasEl.width = Game.DIM_X;
 canvasEl.height = Game.DIM_Y;
 
 var ctx = canvasEl.getContext("2d");
-var game = new Game();
+var game = new Game(ctx);
+
+game.home();
 
 
-new GameView(game, ctx).start();
+// new GameView(game, ctx).home();

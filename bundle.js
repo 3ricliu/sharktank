@@ -61,14 +61,16 @@
 	var Util = __webpack_require__(8);
 
 	var canvasEl = document.getElementsByTagName("canvas")[0];
-	canvasEl.width = Game.DIM_X;8
+	canvasEl.width = Game.DIM_X;
 	canvasEl.height = Game.DIM_Y;
 
 	var ctx = canvasEl.getContext("2d");
-	var game = new Game();
+	var game = new Game(ctx);
+
+	game.home();
 
 
-	new GameView(game, ctx).start();
+	// new GameView(game, ctx).home();
 
 
 /***/ },
@@ -82,18 +84,20 @@
 	var Shark = __webpack_require__(6);
 	var Util = __webpack_require__(8);
 
-	function Game () {
+	function Game (ctx) {
+	    this.ctx = ctx;
 	    this.spikes = [];
 	    this.shark;
 	    this.scoreboard;
 	    this.direction;
+	    this.inGame = false;
+	    this.util = new Util(this);
 
 	    this.addSpikes();
-	    this.addShark();
-	    this.addScoreboard();
+	    // this.addShark();
+	    // this.addScoreboard();
 
-	    var util = new Util(this.shark);
-	    util.addDocumentListeners();
+	    this.util.addDocumentListeners();
 	};
 
 	Game.BG_COLOR = "#F2F1EF";
@@ -162,7 +166,7 @@
 
 	Game.prototype.allObjects = function () {
 	  // debugger
-	  return [].concat(this.spikes, this.scoreboard, this.shark);
+	  return [].concat(this.scoreboard, this.spikes, this.shark);
 	};
 
 	Game.prototype.checkCollisions = function () {
@@ -182,7 +186,7 @@
 	  this.allObjects().forEach(function (object) {
 	    // debugger
 	    object.draw(ctx); // this is where the drawing takes place
-	  });
+	  }.bind(this));
 	};
 
 	// Game.prototype.isOutOfBounds = function (pos) {
@@ -194,12 +198,12 @@
 	    this.shark.move(delta);
 	};
 
-	Game.prototype.randomPosition = function () {
-	  return [
-	    Game.DIM_X * Math.random(),
-	    Game.DIM_Y * Math.random()
-	  ];
-	};
+	// Game.prototype.randomPosition = function () {
+	//   return [
+	//     Game.DIM_X * Math.random(),
+	//     Game.DIM_Y * Math.random()
+	//   ];
+	// };
 
 	// Game.prototype.remove = function (object) {
 	//   if (object instanceof Spikes.Shark) {
@@ -213,10 +217,48 @@
 	//   }
 	// };
 
+	Game.prototype.over = function () {
+	  // alert("over!");
+	  // cancelAnimationFrame(0);
+	  this.inGame = false;
+	  this.home();
+	}
+
 	Game.prototype.step = function (delta) {
 	  this.moveObjects(delta);
 	  this.checkCollisions();
 	};
+
+	Game.prototype.home = function () {
+	  this.ctx.clearRect(0, 0, Game.DIM_X, Game.DIM_Y);
+	  this.ctx.fillStyle = Game.BG_COLOR;
+	  this.ctx.fillRect(0, 0, Game.DIM_X, Game.DIM_Y);
+
+	  this.ctx.fillStyle = "#336E7B"
+	  this.ctx.font = "bold 75px Arial";
+	  this.ctx.textAlign = "center"
+	  this.ctx.fillText("Press P to Start!", 350, 375);
+	}
+
+	Game.prototype.start = function () {
+	  this.lastTime = 0;
+	  // debugger;
+	  this.addShark();
+	  this.addScoreboard();
+	  this.util.addShark(this.shark);
+	  requestAnimationFrame(this.animate.bind(this));
+	}
+
+	Game.prototype.animate = function (time) {
+	  // debugger
+	  var timeDelta = time - this.lastTime;
+	  this.step(timeDelta);
+	  this.draw(this.ctx);
+	  this.lastTime = time;
+	  if(this.inGame) {
+	    requestAnimationFrame(this.animate.bind(this));
+	  }
+	}
 
 
 	module.exports = Game;
@@ -263,6 +305,7 @@
 	    ctx.lineTo(xMid, this.spikeSet[i] * 100 + 130 );
 	    ctx.lineTo(xStart, this.spikeSet[i] * 100 + 180);
 	    ctx.fill();
+	    ctx.stroke();
 	  }
 
 	  // var x =
@@ -493,9 +536,11 @@
 
 	TopSpikes.prototype.draw = function (ctx) {
 	  ctx.fillStyle = this.color;
-	  // ctx.stroke();
+
+	  ctx.beginPath()
 	  ctx.rect(0, 0, this.width, 30)
 	  ctx.fill();
+	  // ctx.stroke();
 
 
 	  var x = 0;
@@ -509,6 +554,8 @@
 	    ctx.lineTo(x, 30);
 	    ctx.fill();
 	  }
+
+	  ctx.stroke();
 
 
 	}
@@ -549,9 +596,11 @@
 
 	BottomSpikes.prototype.draw = function (ctx) {
 	  ctx.fillStyle = this.color;
-	  // ctx.stroke();
+
+	  ctx.beginPath();
 	  ctx.rect(0, 870, this.width, 30)
 	  ctx.fill();
+	  // ctx.stroke();
 
 
 	  var x = 0;
@@ -565,6 +614,8 @@
 	    ctx.lineTo(x, 870);
 	    ctx.fill();
 	  }
+
+	  ctx.stroke();
 
 	}
 
@@ -646,6 +697,11 @@
 	  this.game_width = options.canvas_width;
 	  this.game_height = options.canvas_height;
 	  this.direction = "right";
+	  this.spazzed = false;
+	  this.opacity = 1;
+
+	  this.shark = new Image();
+	  this.shark.src = 'assets/shark.png';
 	  // Sharktank.MovingObject.call(this, options)
 	};
 
@@ -656,13 +712,27 @@
 	Shark.prototype.draw = function (ctx) {
 	  ctx.fillStyle = this.color;
 
+	  if(this.spazzed) {
+	    ctx.fillStyle = "rgba(65, 131, 215, " + this.opacity + ")";
+	    this.opacity -= 0.015;
+
+	    if(this.opacity <= 0) {
+	      this.game.over();
+	    }
+
+	    console.log(this.opacity)
+	  }
+
+
 	  // this.vel[1] = 3
 
-	  ctx.beginPath();
-	  ctx.arc(
-	    this.pos[0], this.pos[1], this.radius, 0, 2 * Math.PI, true
-	  );
-	  ctx.fill();
+	  ctx.drawImage(this.shark, this.pos[0], this.pos[1], 100, 100);
+
+	  // ctx.beginPath();
+	  // ctx.arc(
+	  //   this.pos[0], this.pos[1], this.radius, 0, 2 * Math.PI, true
+	  // );
+	  // ctx.fill();
 	}
 
 	// var NORMAL_FRAME_TIME_DELTA = 1000/60;
@@ -684,6 +754,8 @@
 	  //
 	  //
 	  // this.pos = [newX, newY];
+
+
 
 	  offsetX = this.vel[0];
 	  offsetY = this.vel[1];
@@ -737,21 +809,23 @@
 	}
 
 	Shark.prototype.spaz = function () {
-	  if(this.pos[1] > 830){
-	    this.vel = [30,-30]
+	  if(this.direction === "right"){
+	      this.pos[1] > 830 ? this.vel = [-10,-20] : this.vel = [10, -20]
 	  } else {
-	    this.vel = [-30, 30]
+	    this.pos[1] > 830 ? this.vel = [10,-20] : this.vel = [-10, 20]
 	  }
 	  console.log("spaz")
+	  this.spazzed = true;
+
+
 	}
 
 
-
-	Shark.prototype.relocate = function () {
-	  this.pos = this.game.randomPosition();
-	  this.vel = [0,0];
-	};
-
+	//
+	// Shark.prototype.relocate = function () {
+	//   this.pos = this.game.randomPosition();
+	//   this.vel = [0,0];
+	// };
 	module.exports = Shark;
 
 
@@ -795,8 +869,9 @@
 /* 8 */
 /***/ function(module, exports) {
 
-	function Util (shark) {
-	  this.shark = shark;
+	function Util (game) {
+	  this.shark;
+	  this.game = game;
 	};
 
 	Util.prototype.addDocumentListeners = function () {
@@ -804,11 +879,20 @@
 	  // document.addEventListener("keyup", this.keyReleased.bind(this));
 	};
 
+	Util.prototype.addShark = function (shark) {
+	  this.shark = shark;
+	};
+
 	Util.prototype.keyPressed = function (event) {
 	  switch(event.keyCode) {
 	    case 32:
 	      event.preventDefault();
 	      this.shark.jump();
+	      break;
+	    case 80:
+	      event.preventDefault();
+	      this.game.inGame = true;
+	      this.game.start();
 	      break;
 	  }
 	};
