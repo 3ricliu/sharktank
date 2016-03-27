@@ -57,8 +57,8 @@
 
 	// if this works, try it without the .js
 	var Game = __webpack_require__(1);
-	var GameView = __webpack_require__(8);
-	var Util = __webpack_require__(7);
+	var GameView = __webpack_require__(7);
+	var Util = __webpack_require__(5);
 
 	var canvasEl = document.getElementsByTagName("canvas")[0];
 	canvasEl.width = Game.DIM_X;
@@ -80,11 +80,11 @@
 	var SideSpikes = __webpack_require__(2);
 	// var TopSpikes = require("./topSpikes.js");
 	// var BottomSpikes = require("./bottomSpikes.js");
-	var Scoreboard = __webpack_require__(5);
-	var Shark = __webpack_require__(6);
-	var Util = __webpack_require__(7);
+	var Scoreboard = __webpack_require__(3);
+	var Shark = __webpack_require__(4);
+	var Util = __webpack_require__(5);
 
-	var TopBottomSpikes = __webpack_require__(9);
+	var TopBottomSpikes = __webpack_require__(6);
 
 	function Game (ctx) {
 	    this.ctx = ctx;
@@ -94,8 +94,8 @@
 	    this.direction;
 	    this.inGame = false;
 	    this.util = new Util(this);
+	    this.highScore;
 
-	    this.addSpikes();
 	    // this.addShark();
 	    // this.addScoreboard();
 
@@ -123,15 +123,14 @@
 	};
 
 	Game.prototype.addSpikes = function () {
-	  this.spikes.push(new TopBottomSpikes({game: this, position: "top"}))
-	  this.spikes.push(new TopBottomSpikes({game: this, position: "bottom"}))
-
-	  // this.spikes.push(new TopSpikes({game: this, position: "top"}))
-	  // this.spikes.push(new BottomSpikes({game: this, position: "bottom"}))
-
 	  this.spikes.push(new SideSpikes({game: this}))
 
 	};
+
+	Game.prototype.addTopBottomSpikes = function () {
+	  this.spikes.push(new TopBottomSpikes({game: this, position: "top"}))
+	  this.spikes.push(new TopBottomSpikes({game: this, position: "bottom"}))
+	}
 
 	Game.prototype.addShark = function () {
 	  var shark = new Shark({
@@ -195,8 +194,8 @@
 	//           (pos[1] > Game.DIM_Y);
 	// };
 
-	Game.prototype.moveObjects = function (delta) {
-	    this.shark.move(delta);
+	Game.prototype.moveObjects = function () {
+	    this.shark.move();
 	};
 
 	// Game.prototype.randomPosition = function () {
@@ -220,42 +219,65 @@
 
 	Game.prototype.over = function () {
 	  // alert("over!");
-	  // cancelAnimationFrame(0);
+	  cancelAnimationFrame(0);
+
+	  if(this.highScore === undefined || this.scoreboard.score > this.highScore) {
+	    this.highScore = this.scoreboard.score
+	  }
+
+	  this.spikes = [];
+	  this.shark = null;
+	  this.scoreboard = null;
 	  this.inGame = false;
 	  this.home();
 	}
 
-	Game.prototype.step = function (delta) {
-	  this.moveObjects(delta);
+	Game.prototype.step = function () {
+	  this.moveObjects();
 	  this.checkCollisions();
 	};
 
 	Game.prototype.home = function () {
 	  this.ctx.clearRect(0, 0, Game.DIM_X, Game.DIM_Y);
+	  console.log(this.highScore)
+	  if(!this.highScore) {
+	  }
 	  this.ctx.fillStyle = Game.BG_COLOR;
 	  this.ctx.fillRect(0, 0, Game.DIM_X, Game.DIM_Y);
+	  this.addShark();
+	  this.addTopBottomSpikes();
+	  // this.addScoreboard();
+	  this.shark.draw(this.ctx);
+	  this.spikes.forEach(function (spike){spike.draw(this.ctx)}.bind(this))
+	  // this.scoreboard.draw(this.ctx)
 
-	  this.ctx.fillStyle = "#336E7B"
+	  this.ctx.fillStyle = "white"
 	  this.ctx.font = "bold 25px Arial";
 	  this.ctx.textAlign = "center"
 	  this.ctx.fillText("Press P to Start!", 300, 350);
+	  this.ctx.fillText(this.highScore, 300, 375);
+
 	}
 
 	Game.prototype.start = function () {
-	  this.lastTime = 0;
+	  // this.lastTime = 0;
 	  // debugger;
-	  this.addShark();
 	  this.addScoreboard();
+	  this.addSpikes();
 	  this.util.addShark(this.shark);
-	  requestAnimationFrame(this.animate.bind(this));
+	  this.animate();
+	  // requestAnimationFrame(this.animate.bind(this));
+	  //UNCOMMENT THIS WHEN YOU"RE PLAY
 	}
 
-	Game.prototype.animate = function (time) {
+	Game.prototype.animate = function () {
+	  //took out time in the parameter
 	  // debugger
-	  var timeDelta = time - this.lastTime;
-	  this.step(timeDelta);
+	  // var timeDelta = time - this.lastTime;
+	  // took out timeDelta in this.step(timeDelta)
+	  this.step();
 	  this.draw(this.ctx);
-	  this.lastTime = time;
+	  // this.lastTime = time;
 	  if(this.inGame) {
 	    requestAnimationFrame(this.animate.bind(this));
 	  }
@@ -296,9 +318,13 @@
 
 	  for(var i = 2; i < this.spikeSet.length; i++) {
 	    ctx.beginPath();
-	    ctx.moveTo(xStart, this.spikeSet[i] * 100 + 80);
-	    ctx.lineTo(xMid, this.spikeSet[i] * 100 + 130 );
-	    ctx.lineTo(xStart, this.spikeSet[i] * 100 + 180);
+	    // debugger
+	    // ctx.moveTo(xStart, this.spikeSet[i] * 50 + 80);
+	    // ctx.lineTo(xMid, this.spikeSet[i] * 50 + 130 );
+
+	    ctx.moveTo(xStart, this.spikeSet[i] * 58 + 59);
+	    ctx.lineTo(xMid, this.spikeSet[i] * 58 + 88 );
+	    ctx.lineTo(xStart, this.spikeSet[i] * 58 + 117);
 	    ctx.fill();
 	    ctx.stroke();
 	  }
@@ -313,20 +339,25 @@
 
 	SideSpikes.prototype.chooseSpikes = function (direction) {
 	  // return an array of possible spike positions
-	  var numSpikes = Math.ceil(Math.random()*4);
+	  var numSpikes = Math.ceil(Math.random()*4) + Math.floor(this.game.scoreboard.score/5);
+	  if(numSpikes > 9) {
+	    numSpikes = 8
+	  }
+	  console.log(numSpikes)
+
 	  var spikeArray = []
 
 	  while(spikeArray.length < numSpikes) {
-	      spikeIdx = Math.floor(Math.random()*7);
+	      spikeIdx = Math.floor(Math.random()*10);
 	      if(spikeArray.indexOf(spikeIdx) === -1) {
 	        spikeArray.push(spikeIdx);
 	      }
 	  }
 
 	  if(direction === "left"){
-	    spikeArray.unshift(0, 50);
+	    spikeArray.unshift(0, 30);
 	  } else {
-	    spikeArray.unshift(700, 650);
+	    spikeArray.unshift(550, 520);
 	  }
 
 	  this.spikeSet = spikeArray;
@@ -348,13 +379,12 @@
 	  var hitBoxLower;
 
 	  for(var i = 2; i < this.spikeSet.length; i ++) {
-	    hitBoxLower = this.spikeSet[i] * 100 + 80;
-	    hitBoxUpper = this.spikeSet[i] * 100 + 180;
+	    hitBoxLower = this.spikeSet[i] * 58 + 59;
+	    hitBoxUpper = this.spikeSet[i] * 58 + 117;
 
 	    if(objectYCoor > hitBoxLower && objectYCoor < hitBoxUpper) {
-
-	      if((this.position === "left" && objectXCoor < 50) ||
-	          this.position === "right" && objectXCoor > 650) {
+	      if((this.position === "left" && objectXCoor < 30) ||
+	          this.position === "right" && objectXCoor > 520) {
 	        collided = true
 	      }
 	    }
@@ -402,9 +432,7 @@
 
 
 /***/ },
-/* 3 */,
-/* 4 */,
-/* 5 */
+/* 3 */
 /***/ function(module, exports) {
 
 	function Scoreboard (options) {
@@ -414,7 +442,7 @@
 	  this.score = 0;
 	  this.sharkDirection = "right";
 	  this.pos = [this.game.DIM_X/2, this.game.DIM_Y/2];
-	  this.pos = [350, 300];
+	  this.pos = [300, 300];
 	};
 
 	Scoreboard.prototype.draw = function (ctx) {
@@ -424,7 +452,7 @@
 	  ctx.fillStyle = this.color;
 	  ctx.beginPath();
 	  ctx.arc(
-	    this.pos[0], this.pos[1], 175, 0, 2 * Math.PI, true
+	    this.pos[0], this.pos[1], 150, 0, 2 * Math.PI, true
 	  )
 	  ctx.fill();
 
@@ -432,7 +460,7 @@
 	  ctx.fillStyle = "white"
 	  ctx.font = "bold 200px Arial";
 	  ctx.textAlign = "center"
-	  ctx.fillText(this.score, 350, 375);
+	  ctx.fillText(this.score, 300, 350);
 	  console.log(this.score)
 	};
 
@@ -449,14 +477,14 @@
 
 
 /***/ },
-/* 6 */
+/* 4 */
 /***/ function(module, exports) {
 
 	function Shark (options) {
 	  this.radius = Shark.RADIUS;
-	  this.vel = options.vel || [8, 13];
+	  this.vel = options.vel || [8, -10];
 	  this.color = "#4183D7";
-	  this.pos = options.pos || [350, 300];
+	  this.pos = options.pos || [300, 300];
 	  this.game = options.game;
 	  this.game_width = options.canvas_width;
 	  this.game_height = options.canvas_height;
@@ -464,12 +492,16 @@
 	  this.spazzed = false;
 	  this.opacity = 1;
 
+
+	  this.img = new Image();
+	  this.img.src = "assets/shark.png"
+
 	  // this.shark = new Image();
 	  // this.shark.src = 'assets/shark.png';
 	  // Sharktank.MovingObject.call(this, options)
 	};
 
-	Shark.RADIUS = 25;
+	Shark.RADIUS = 5;
 
 	// Sharktank.Util.inherits(Shark, Sharktank.MovingObject);
 
@@ -478,10 +510,11 @@
 
 	  if(this.spazzed) {
 	    ctx.fillStyle = "rgba(65, 131, 215, " + this.opacity + ")";
-	    this.opacity -= 0.015;
+	    this.opacity -= 0.030;
 
 	    if(this.opacity <= 0) {
 	      this.game.over();
+	      this.pos = [1000, 1000]; //bandaid
 	    }
 
 	    // console.log(this.opacity)
@@ -491,17 +524,127 @@
 	  // this.vel[1] = 3
 
 	  // ctx.drawImage(this.shark, this.pos[0], this.pos[1], 100, 100);
+	  if(this.opacity != 0) {
+	    ctx.beginPath();
 
-	  ctx.beginPath();
-	  ctx.arc(
-	    this.pos[0], this.pos[1], this.radius, 0, 2 * Math.PI, true
-	  );
-	  ctx.fill();
+
+	    if(this.direction === "right") {
+
+	      //drawing the mouth
+	      ctx.moveTo(this.pos[0], this.pos[1] + 25);
+	      if (this.vel[1] < 2) { // is the guy in mid jump
+	        ctx.lineTo(this.pos[0] + 20, this.pos[1] + 25 - 12.5);
+	        ctx.lineTo(this.pos[0], this.pos[1]);
+	      } else {
+	        ctx.lineTo(this.pos[0] + 20, this.pos[1] + 25);
+	        ctx.lineTo(this.pos[0], this.pos[1] + 25 - 12.5);
+	        ctx.lineTo(this.pos[0] + 20, this.pos[1]);
+	        ctx.lineTo(this.pos[0], this.pos[1]);
+	      }
+
+	      //drawing head
+
+
+	      //drawing the fin
+	      ctx.lineTo(this.pos[0] - 5, this.pos[1]);
+	      ctx.lineTo(this.pos[0] - 5 - 15, this.pos[1] - 15);
+	      ctx.lineTo(this.pos[0] - 5 - 15, this.pos[1]);
+
+	      //drawing the body
+	      ctx.lineTo(this.pos[0] - 25, this.pos[1]); // line to body
+	      ctx.lineTo(this.pos[0] - 25 - 10, this.pos[1] + 5); //line down
+	      ctx.lineTo(this.pos[0] - 25 - 10 - 20, this.pos[1] + 5 - 15); //line to fin
+	      ctx.lineTo(this.pos[0] - 25 - 10 - 20, this.pos[1] + 5 - 15 + 45); //line down fin
+	      ctx.lineTo(this.pos[0] - 25 - 10 - 20 + 20, this.pos[1] + 5 - 15 + 45 - 15); //line up fin
+	      ctx.lineTo(this.pos[0] - 25 - 10 - 20 + 20 + 10, this.pos[1] + 5 - 15 + 45 - 15 + 5)
+	      ctx.lineTo(this.pos[0], this.pos[1] + 25);
+	      ctx.fill();
+	      ctx.stroke();
+
+	      //drawing the fin that moves
+	      ctx.fillStyle = "white";
+	      var sharkArmY;
+	      ctx.beginPath();
+
+	      ctx.moveTo(this.pos[0] - 10, this.pos[1] + 25);
+	      this.vel[1] < 4 ? sharkArmY = 15 : sharkArmY = -15
+	      ctx.lineTo(this.pos[0] - 10 - 15, this.pos[1] + 25 + sharkArmY);
+	      ctx.lineTo(this.pos[0] - 10 - 15, this.pos[1] + 25);
+	      ctx.lineTo(this.pos[0] - 10, this.pos[1] + 25);
+	      ctx.fill();
+	      ctx.stroke();
+
+	      //draw the eye
+	      ctx.beginPath();
+	      ctx.arc(
+	        this.pos[0] - 5, this.pos[1] + 8, this.radius, 0, 2 * Math.PI, true
+	      );
+	      ctx.fill();
+	      ctx.stroke();
+	    } else {
+	      //it's going left
+
+	      //drawing the mouth
+	      ctx.moveTo(this.pos[0], this.pos[1] + 25);
+	      if (this.vel[1] < 2) { // is the guy in mid jump
+	        ctx.lineTo(this.pos[0] - 20, this.pos[1] + 25 - 12.5);
+	        ctx.lineTo(this.pos[0], this.pos[1]);
+	      } else { // to do
+	        ctx.lineTo(this.pos[0] - 20, this.pos[1] + 25);
+	        ctx.lineTo(this.pos[0], this.pos[1] + 25 - 12.5);
+	        ctx.lineTo(this.pos[0] - 20, this.pos[1]);
+	        ctx.lineTo(this.pos[0], this.pos[1]);
+	      }
+
+	      //drawing head
+
+
+	      //drawing the fin
+	      ctx.lineTo(this.pos[0] + 5, this.pos[1]);
+	      ctx.lineTo(this.pos[0] + 5 + 15, this.pos[1] - 15);
+	      ctx.lineTo(this.pos[0] + 5 + 15, this.pos[1]);
+
+	      //drawing the body
+	      ctx.lineTo(this.pos[0] + 25, this.pos[1]); // line to body
+	      ctx.lineTo(this.pos[0] + 25 + 10, this.pos[1] + 5); //line down
+	      ctx.lineTo(this.pos[0] + 25 + 10 + 20, this.pos[1] + 5 - 15); //line to fin
+	      ctx.lineTo(this.pos[0] + 25 + 10 + 20, this.pos[1] + 5 - 15 + 45); //line down fin
+	      ctx.lineTo(this.pos[0] + 25 + 10 + 20 - 20, this.pos[1] + 5 - 15 + 45 - 15); //line up fin
+	      ctx.lineTo(this.pos[0] + 25 + 10 + 20 - 20 - 10, this.pos[1] + 5 - 15 + 45 - 15 + 5)
+	      ctx.lineTo(this.pos[0], this.pos[1] + 25);
+
+	      ctx.fill();
+	      ctx.stroke();
+
+	      //drawing the fin that moves
+	      ctx.fillStyle = "white";
+	      ctx.beginPath();
+
+	      ctx.moveTo(this.pos[0] + 10, this.pos[1] + 25);
+	      var sharkArmY;
+	      this.vel[1] < 4 ? sharkArmY = 15 : sharkArmY = -15
+	      ctx.lineTo(this.pos[0] + 10 + 15, this.pos[1] + 25 + sharkArmY);
+	      ctx.lineTo(this.pos[0] + 10 + 15, this.pos[1] + 25);
+	      ctx.lineTo(this.pos[0] + 10, this.pos[1] + 25);
+	      ctx.fill();
+	      ctx.stroke();
+
+	      //draw the eye
+	      ctx.beginPath();
+	      ctx.arc(
+	        this.pos[0] + 5, this.pos[1] + 8, this.radius, 0, 2 * Math.PI, true
+	      );
+	      ctx.fill();
+	      ctx.stroke();
+	    }
+	  }
 	}
 
 	// var NORMAL_FRAME_TIME_DELTA = 1000/60;
 
-	Shark.prototype.move = function (timeDelta) {
+	Shark.prototype.move = function () {
+	  // took in timeDelta
+
 	  //timeDelta is number of milliseconds since last move
 	  //if the computer is busy the time delta will be larger
 	  //in this case the MovingObject should move farther in this frame
@@ -527,7 +670,7 @@
 	  newX = this.pos[0] + offsetX;
 	  newY = this.pos[1] + offsetY;
 
-	  if(newX > this.game_width - this.radius || newX < 0 + this.radius) {
+	  if(newX > this.game_width - 20 || newX < 0 + 20) {
 	    this.vel[0] = -this.vel[0];
 
 	    if(this.vel[0] > 0) {
@@ -573,12 +716,13 @@
 
 	Shark.prototype.spaz = function () {
 	  if(this.direction === "right"){
-	      this.pos[1] > 830 ? this.vel = [-10,-20] : this.vel = [10, -20]
+	      this.pos[1] > 640 ? this.vel = [-8,-12] : this.vel = [8, -12]
 	  } else {
-	    this.pos[1] > 830 ? this.vel = [10,-20] : this.vel = [-10, 20]
+	    this.pos[1] > 640 ? this.vel = [8,-12] : this.vel = [-8, 12]
 	  }
 	  console.log("spaz")
 	  this.spazzed = true;
+	  // this.game.over();
 
 
 	}
@@ -593,7 +737,7 @@
 
 
 /***/ },
-/* 7 */
+/* 5 */
 /***/ function(module, exports) {
 
 	function Util (game) {
@@ -614,7 +758,12 @@
 	  switch(event.keyCode) {
 	    case 32:
 	      event.preventDefault();
-	      this.shark.jump();
+	      if(this.game.inGame === false) {
+	        this.game.inGame = true;
+	        this.game.start();
+	      } else {
+	        this.shark.jump();
+	      }
 	      break;
 	    case 80:
 	      event.preventDefault();
@@ -671,43 +820,7 @@
 
 
 /***/ },
-/* 8 */
-/***/ function(module, exports) {
-
-	function GameView (game, ctx) {
-	    this.ctx = ctx;
-	    this.game = game;
-	    // this.shark = this.game.addShark();
-	};
-
-	  // GameView.prototype.bindKeyHandlers = function () {
-	  //   var shark = this.shark;
-	  //   key("space", function () {
-	  //     shark.jump()
-	  //     console.log("space")
-	  //   });
-	  // };
-
-	GameView.prototype.start = function () {
-	  this.lastTime = 0;
-	  requestAnimationFrame(this.animate.bind(this));
-	};
-
-	GameView.prototype.animate = function (time) {
-	  var timeDelta = time - this.lastTime;
-
-	  this.game.step(timeDelta);
-	  this.game.draw(this.ctx);
-	  this.lastTime = time;
-
-	  requestAnimationFrame(this.animate.bind(this));
-	};
-
-	module.exports = GameView;
-
-
-/***/ },
-/* 9 */
+/* 6 */
 /***/ function(module, exports) {
 
 	// var Spike = require("./spike.js");
@@ -784,6 +897,42 @@
 
 
 	module.exports = TopBottomSpikes;
+
+
+/***/ },
+/* 7 */
+/***/ function(module, exports) {
+
+	function GameView (game, ctx) {
+	    this.ctx = ctx;
+	    this.game = game;
+	    // this.shark = this.game.addShark();
+	};
+
+	  // GameView.prototype.bindKeyHandlers = function () {
+	  //   var shark = this.shark;
+	  //   key("space", function () {
+	  //     shark.jump()
+	  //     console.log("space")
+	  //   });
+	  // };
+
+	GameView.prototype.start = function () {
+	  this.lastTime = 0;
+	  requestAnimationFrame(this.animate.bind(this));
+	};
+
+	GameView.prototype.animate = function (time) {
+	  var timeDelta = time - this.lastTime;
+
+	  this.game.step(timeDelta);
+	  this.game.draw(this.ctx);
+	  this.lastTime = time;
+
+	  requestAnimationFrame(this.animate.bind(this));
+	};
+
+	module.exports = GameView;
 
 
 /***/ }

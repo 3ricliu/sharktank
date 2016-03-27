@@ -6,3 +6,11 @@ canvas {
     display: block;
     /*width: 800px;*/
 }
+
+html {
+  background: url("https://linkpot.files.wordpress.com/2010/10/001desktop.jpg") no-repeat center center fixed;
+  -webkit-background-size: cover;
+  -moz-background-size: cover;
+  -o-background-size: cover;
+  background-size: cover;
+}
