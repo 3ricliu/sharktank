@@ -1,0 +1,15 @@
+canvas {
+    padding-left: 0;
+    padding-right: 0;
+    margin-left: auto;
+    margin-right: auto;
+    display: block;
+}
+
+html {
+  background: url("http://res.cloudinary.com/dlvkhiu0c/image/upload/v1459072511/001desktop_uu3sux.jpg") no-repeat center center fixed;
+  -webkit-background-size: cover;
+  -moz-background-size: cover;
+  -o-background-size: cover;
+  background-size: cover;
+}
