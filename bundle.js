@@ -57,7 +57,7 @@
 
 	// if this works, try it without the .js
 	var Game = __webpack_require__(1);
-	var GameView = __webpack_require__(7);
+	var GameView = __webpack_require__(8);
 	var Util = __webpack_require__(5);
 
 	var canvasEl = document.getElementsByTagName("canvas")[0];
@@ -83,18 +83,21 @@
 	var Scoreboard = __webpack_require__(3);
 	var Shark = __webpack_require__(4);
 	var Util = __webpack_require__(5);
+	var FishHolder = __webpack_require__(6);
 
-	var TopBottomSpikes = __webpack_require__(6);
+	var TopBottomSpikes = __webpack_require__(7);
 
 	function Game (ctx) {
 	    this.ctx = ctx;
 	    this.spikes = [];
 	    this.shark;
+	    this.fishHolder;
 	    this.scoreboard;
 	    this.direction;
 	    this.inGame = false;
 	    this.util = new Util(this);
-	    this.highScore;
+	    this.highScore = 0;
+	    this.gamesPlayed = 0;
 
 	    // this.addShark();
 	    // this.addScoreboard();
@@ -125,6 +128,12 @@
 	Game.prototype.addSpikes = function () {
 	  this.spikes.push(new SideSpikes({game: this}))
 
+	};
+
+	Game.prototype.addFishHolder = function () {
+	  this.fishHolder = new FishHolder ({
+	    game: this
+	  });
 	};
 
 	Game.prototype.addTopBottomSpikes = function () {
@@ -166,16 +175,20 @@
 
 	Game.prototype.allObjects = function () {
 	  // debugger
-	  return [].concat(this.scoreboard, this.spikes, this.shark);
+	  return [].concat(this.scoreboard, this.spikes, this.shark, this.fishHolder);
 	};
 
 	Game.prototype.checkCollisions = function () {
-
 	  this.spikes.forEach(function (spike) {
 	      if(spike.isCollidedWith(this.shark)) {
 	        spike.collideWith(this.shark);
 	      }
 	  }.bind(this));
+
+	  if(this.fishHolder.isCollidedWith(this.shark)) {
+	    // debugger
+	    this.fishHolder.collideWith(this.shark);
+	  }
 	};
 
 	Game.prototype.draw = function (ctx) {
@@ -246,26 +259,26 @@
 	  this.ctx.fillRect(0, 0, Game.DIM_X, Game.DIM_Y);
 	  this.addShark();
 	  this.addTopBottomSpikes();
+	  this.addScoreboard();
 	  // this.addScoreboard();
-	  this.shark.draw(this.ctx);
-	  this.spikes.forEach(function (spike){spike.draw(this.ctx)}.bind(this))
+	  // this.spikes.forEach(function (spike){spike.draw(this.ctx)}.bind(this))
 	  // this.scoreboard.draw(this.ctx)
+	  this.floatShark();
 
-	  this.ctx.fillStyle = "white"
-	  this.ctx.font = "bold 25px Arial";
-	  this.ctx.textAlign = "center"
-	  this.ctx.fillText("Press P to Start!", 300, 350);
-	  this.ctx.fillText(this.highScore, 300, 375);
 
 	}
 
 	Game.prototype.start = function () {
 	  // this.lastTime = 0;
 	  // debugger;
-	  this.addScoreboard();
+	  // this.addScoreboard();
 	  this.addSpikes();
+	  this.addFishHolder();
 	  this.util.addShark(this.shark);
+	  this.shark.floatDirection = null;
+	  this.shark.vel = [5,-7];
 	  this.animate();
+	  this.gamesPlayed += 1;
 	  // requestAnimationFrame(this.animate.bind(this));
 	  //UNCOMMENT THIS WHEN YOU"RE PLAY
 	}
@@ -280,6 +293,36 @@
 	  // this.lastTime = time;
 	  if(this.inGame) {
 	    requestAnimationFrame(this.animate.bind(this));
+	  }
+	}
+
+
+	Game.prototype.floatShark = function () {
+	  this.ctx.clearRect(0, 0, Game.DIM_X, Game.DIM_Y);
+	  this.ctx.fillStyle = Game.BG_COLOR;
+	  this.ctx.fillRect(0, 0, Game.DIM_X, Game.DIM_Y);
+	  this.spikes[0].draw(this.ctx);
+	  this.spikes[1].draw(this.ctx);
+	  this.scoreboard.draw(this.ctx);
+	  this.shark.draw(this.ctx);
+	  this.shark.float();
+
+	  this.ctx.fillStyle = "#6C7A89";
+	  this.ctx.font = "75px Verdana";
+	  this.ctx.textAlign = "center"
+	  this.ctx.fillText("SHARKTANK", 275, 150);
+
+
+	  this.ctx.font = "25px Verdana";
+	  this.ctx.textAlign = "center"
+	  this.ctx.fillStyle = "white";
+	  this.ctx.fillText("SPACE", 300, 300);
+	  this.ctx.fillText("TO SWIM", 300, 325);
+	  this.ctx.fillStyle = "#6C7A89";
+	  this.ctx.fillText("BEST SCORE: " + this.highScore, 300, 550);
+	  this.ctx.fillText("GAMES PLAYED: " + this.gamesPlayed, 300, 600);
+	  if(!this.inGame) {
+	    requestAnimationFrame(this.floatShark.bind(this))
 	  }
 	}
 
@@ -339,7 +382,7 @@
 
 	SideSpikes.prototype.chooseSpikes = function (direction) {
 	  // return an array of possible spike positions
-	  var numSpikes = Math.ceil(Math.random()*4) + Math.floor(this.game.scoreboard.score/5);
+	  var numSpikes = Math.ceil(Math.random()*4) + Math.floor(this.game.scoreboard.score/10);
 	  if(numSpikes > 9) {
 	    numSpikes = 8
 	  }
@@ -371,10 +414,10 @@
 	// Sharktank.Util.inherits(Spike, Sharktank.MovingObject);
 
 
-	SideSpikes.prototype.isCollidedWith = function (otherObject) {
+	SideSpikes.prototype.isCollidedWith = function (shark) {
 	  var collided = false;
-	  var objectXCoor = otherObject.pos[0];
-	  var objectYCoor = otherObject.pos[1];
+	  var objectXCoor = shark.pos[0];
+	  var objectYCoor = shark.pos[1];
 	  var hitBoxUpper;
 	  var hitBoxLower;
 
@@ -397,9 +440,9 @@
 	  //
 	  // if(this.position === "left") {
 	  //   for(var i = 2; i < this.spikeSet.length; i++ ) {
-	  //     if((otherObject.pos[1] > this.spikeSet[i] * 100 + 80) &&
-	  //         (otherObject.pos[1] < this.spikeSet[i] * 100 + 180) &&
-	  //           otherObject.pos[0] < 50) {
+	  //     if((shark.pos[1] > this.spikeSet[i] * 100 + 80) &&
+	  //         (shark.pos[1] < this.spikeSet[i] * 100 + 180) &&
+	  //           shark.pos[0] < 50) {
 	  //             // console.log(this.direction)
 	  //             // debugger
 	  //           collided = true;
@@ -407,16 +450,16 @@
 	  //   }
 	  // } else {
 	  //   for(var i = 2; i < this.spikeSet.length; i++ ) {
-	  //     if((otherObject.pos[1] > this.spikeSet[i] * 100 + 80) &&
-	  //         (otherObject.pos[1] < this.spikeSet[i] * 100 + 180) &&
-	  //           otherObject.pos[0] > 650) {
+	  //     if((shark.pos[1] > this.spikeSet[i] * 100 + 80) &&
+	  //         (shark.pos[1] < this.spikeSet[i] * 100 + 180) &&
+	  //           shark.pos[0] > 650) {
 	  //             // console.log(this.direction)
 	  //             // debugger
 	  //           collided = true;
 	  //         }
 	  //   }
 	  // }
-	  // return otherObject.pos[1] > 830;
+	  // return shark.pos[1] > 830;
 
 	  return collided
 	};
@@ -438,11 +481,12 @@
 	function Scoreboard (options) {
 	  this.game = options.game;
 	  this.shark = options.shark;
-	  this.color = "#336E7B";
+	  this.color = "#2980b9";
+	  // this.color = "#336E7B";
 	  this.score = 0;
 	  this.sharkDirection = "right";
-	  this.pos = [this.game.DIM_X/2, this.game.DIM_Y/2];
-	  this.pos = [300, 300];
+	  // this.pos = [this.game.DIM_X/2, this.game.DIM_Y/2 + 200];
+	  this.pos = [300, 350];
 	};
 
 	Scoreboard.prototype.draw = function (ctx) {
@@ -456,20 +500,22 @@
 	  )
 	  ctx.fill();
 
-
-	  ctx.fillStyle = "white"
-	  ctx.font = "bold 200px Arial";
-	  ctx.textAlign = "center"
-	  ctx.fillText(this.score, 300, 350);
-	  console.log(this.score)
+	  if(this.game.inGame) {
+	    ctx.fillStyle = "white"
+	    ctx.font = "bold 150px Arial";
+	    ctx.textAlign = "center"
+	    ctx.fillText(this.score, 300, 400);
+	  }
 	};
 
 	Scoreboard.prototype.checkScore = function () {
-	  if(this.shark.direction != this.sharkDirection) {
-	    // debugger;
-	    this.sharkDirection = this.shark.direction;
-	    this.score += 1;
-	    // console.log("here")
+	  if(!this.shark.spazzed) {
+	    if(this.shark.direction != this.sharkDirection) {
+	      // debugger;
+	      this.sharkDirection = this.shark.direction;
+	      this.score += 1;
+	      // console.log("here")
+	    }
 	  }
 	}
 
@@ -482,15 +528,18 @@
 
 	function Shark (options) {
 	  this.radius = Shark.RADIUS;
-	  this.vel = options.vel || [8, -10];
-	  this.color = "#4183D7";
-	  this.pos = options.pos || [300, 300];
+	  // this.vel = options.vel || [5, -7];
+	  this.vel = [0, 1]
+	  this.color = "#F62459";
+	  // this.color = "#4183D7";
+	  this.pos = options.pos || [315, 350];
 	  this.game = options.game;
 	  this.game_width = options.canvas_width;
 	  this.game_height = options.canvas_height;
 	  this.direction = "right";
 	  this.spazzed = false;
 	  this.opacity = 1;
+	  this.floatDirection = "down";
 
 
 	  this.img = new Image();
@@ -509,8 +558,9 @@
 	  ctx.fillStyle = this.color;
 
 	  if(this.spazzed) {
-	    ctx.fillStyle = "rgba(65, 131, 215, " + this.opacity + ")";
-	    this.opacity -= 0.030;
+	    ctx.fillStyle = "rgba(41, 128, 185, " + this.opacity + ")";
+	    // ctx.fillStyle = "rgba(215, 74, 65, " + this.opacity + ")";
+	    this.opacity -= 0.015;
 
 	    if(this.opacity <= 0) {
 	      this.game.over();
@@ -575,12 +625,15 @@
 	      ctx.stroke();
 
 	      //draw the eye
-	      ctx.beginPath();
-	      ctx.arc(
-	        this.pos[0] - 5, this.pos[1] + 8, this.radius, 0, 2 * Math.PI, true
-	      );
-	      ctx.fill();
-	      ctx.stroke();
+	      if(!this.spazzed) {
+	        ctx.beginPath();
+	        ctx.arc(
+	          this.pos[0] - 5, this.pos[1] + 8, this.radius, 0, 2 * Math.PI, true
+	        );
+	        ctx.fill();
+	        ctx.stroke();
+	      }
+
 	    } else {
 	      //it's going left
 
@@ -622,7 +675,7 @@
 
 	      ctx.moveTo(this.pos[0] + 10, this.pos[1] + 25);
 	      var sharkArmY;
-	      this.vel[1] < 4 ? sharkArmY = 15 : sharkArmY = -15
+	      this.vel[1] < 4  ? sharkArmY = 15 : sharkArmY = -15
 	      ctx.lineTo(this.pos[0] + 10 + 15, this.pos[1] + 25 + sharkArmY);
 	      ctx.lineTo(this.pos[0] + 10 + 15, this.pos[1] + 25);
 	      ctx.lineTo(this.pos[0] + 10, this.pos[1] + 25);
@@ -630,12 +683,14 @@
 	      ctx.stroke();
 
 	      //draw the eye
-	      ctx.beginPath();
-	      ctx.arc(
-	        this.pos[0] + 5, this.pos[1] + 8, this.radius, 0, 2 * Math.PI, true
-	      );
-	      ctx.fill();
-	      ctx.stroke();
+	      if(!this.spazzed) {
+	        ctx.beginPath();
+	        ctx.arc(
+	          this.pos[0] + 5, this.pos[1] + 8, this.radius, 0, 2 * Math.PI, true
+	        );
+	        ctx.fill();
+	        ctx.stroke();
+	      }
 	    }
 	  }
 	}
@@ -695,9 +750,27 @@
 
 	}
 
+
+	Shark.prototype.float = function () {
+	  if(this.floatDirection == "down" && this.vel[1] < 1.3) {
+	    this.vel[1] += 0.01
+	  } else if (this.floatDirection === "down" && this.vel[1] > 1.3) {
+	    this.floatDirection = "up"
+	    this.vel[1] = -1
+	  } else if (this.floatDirection === "up" && this.vel[1] > -1.3) {
+	    this.vel[1] -= 0.01
+	  } else if (this.floatDirection === "up" && this.vel[1] < -1.3) {
+	    this.floatDirection = "down";
+	    this.vel[1] = 1
+	  }
+	  newX = this.pos[0] + this.vel[0];
+	  newY = this.pos[1] + this.vel[1];
+	  this.pos = [newX, newY];
+	}
+
 	Shark.prototype.calculateY = function () {
-	  if(this.vel[1] < 13) {
-	    this.vel[1] += 0.6
+	  if(this.vel[1] < 7) {
+	    this.vel[1] += 0.5
 	  }
 
 	  // if(this.vel[1] > 0) {
@@ -710,7 +783,8 @@
 
 	Shark.prototype.jump = function () {
 	  // debugger;
-	  this.vel[1] = -13;
+	  // this.vel = [5, -11];
+	  this.vel[1] = -11;
 	  // console.log("inside jump")
 	}
 
@@ -765,10 +839,15 @@
 	        this.shark.jump();
 	      }
 	      break;
-	    case 80:
+	    case 13:
 	      event.preventDefault();
-	      this.game.inGame = true;
-	      this.game.start();
+	      if(this.shark.spazzed && this.game.inGame) {
+	        this.game.spikes = [];
+	        this.game.shark = null;
+	        this.game.scoreboard = null;
+	        this.game.inGame = false;
+	        this.game.home();
+	      }
 	      break;
 	  }
 	};
@@ -821,6 +900,87 @@
 
 /***/ },
 /* 6 */
+/***/ function(module, exports, __webpack_require__) {
+
+	var Fish = __webpack_require__(9);
+
+	function FishHolder (options) {
+	  this.game = options.game;
+	  this.fishHolder = [];
+	  this.sharkDirection = this.game.shark.direction;
+	  this.opacity = 1;
+	  this.eaten = false;
+	  this.fishCoor;
+	};
+
+	FishHolder.prototype.randomizeFish = function () {
+	  if(this.fishHolder.length === 0 && this.sharkDirection != this.game.shark.direction) {
+	    this.sharkDirection = this.game.shark.direction;
+	    if(Math.ceil(Math.random()*3) === 3) {
+	      var x = Math.ceil(Math.random()*390) + 80;
+	      var y = Math.ceil(Math.random()*500) + 100;
+	      this.fishHolder.push(new Fish({pos: [x, y]}));
+	      this.fishCoor = [x,y]
+	    }
+	  }
+	};
+
+	FishHolder.prototype.draw = function (ctx) {
+	  if(this.game.inGame === false) {
+	    this.fishHolder = [];
+	  } else {
+	    if(this.eaten === false) {
+	      if(this.fishHolder.length === 0) {
+	        this.randomizeFish();
+	      } else {
+	        this.fishHolder[0].move();
+	        this.fishHolder[0].draw(ctx);
+	      }
+	    } else {
+	      ctx.font = "bold 25px Arial";
+	      ctx.fillStyle = "rgba(246, 36, 89, " + this.opacity + ")";
+	      ctx.fillText("+5", this.fishCoor[0], this.fishCoor[1]);
+	      this.opacity -= 0.030;
+
+	      if(this.opacity <= 0) {
+	        this.eaten = false;
+	        this.opacity = 1;
+	      }
+	    }
+	  }
+
+	};
+
+	FishHolder.prototype.collideWith = function (shark) {
+	  this.game.scoreboard.score += 5;
+	  this.fishHolder = [];
+	  this.eaten = true;
+	}
+
+	FishHolder.prototype.isCollidedWith = function (shark) {
+	  var collided = false;
+	  if(this.fishHolder.length != 0) {
+	    var objectXCoor = shark.pos[0];
+	    var objectYCoor = shark.pos[1];
+	    var hitBoxUpper = this.fishHolder[0].pos[1] - 30;
+	    var hitBoxLower = this.fishHolder[0].pos[1] + 30;
+	    var hitBoxRight = this.fishHolder[0].pos[0] + 40;
+	    var hitBoxLeft = this.fishHolder[0].pos[0] - 40;
+	    if(objectXCoor <= hitBoxRight && objectXCoor >= hitBoxLeft && objectYCoor >= hitBoxUpper && objectYCoor <= hitBoxLower) {
+	      // debugger
+	      collided = true
+	    }
+
+	  }
+	  return collided
+	}
+
+
+	module.exports = FishHolder;
+
+
+/***/ },
+/* 7 */
 /***/ function(module, exports) {
 
 	// var Spike = require("./spike.js");
@@ -900,7 +1060,7 @@
 
 
 /***/ },
-/* 7 */
+/* 8 */
 /***/ function(module, exports) {
 
 	function GameView (game, ctx) {
@@ -933,6 +1093,52 @@
 	};
 
 	module.exports = GameView;
+
+
+/***/ },
+/* 9 */
+/***/ function(module, exports) {
+
+	function Fish (options) {
+	  this.pos = options.pos;
+	  this.vel = [0, 1]
+	  this.direction = "down";
+	  this.img = new Image();
+	  this.img.src = 'assets/steak.png';
+	};
+
+	Fish.prototype.draw = function (ctx) {
+	  // ctx.fillStyle = this.color;
+	  //
+	  // ctx.beginPath();
+	  // ctx.arc(
+	  //   this.pos[0], this.pos[1], 20, 0, 2 * Math.PI, true
+	  // );
+	  // ctx.fill();
+	  // ctx.stroke();
+	  ctx.drawImage(this.img, this.pos[0], this.pos[1])
+	}
+
+	Fish.prototype.move = function () {
+	  if(this.direction == "down" && this.vel[1] < 1.3) {
+	    this.vel[1] += 0.01
+	  } else if (this.direction === "down" && this.vel[1] > 1.3) {
+	    this.direction = "up"
+	    this.vel[1] = -1
+	  } else if (this.direction === "up" && this.vel[1] > -1.3) {
+	    this.vel[1] -= 0.01
+	  } else if (this.direction === "up" && this.vel[1] < -1.3) {
+	    this.direction = "down";
+	    this.vel[1] = 1
+	  }
+	  console.log(this.direction)
+	  console.log(this.vel[1])
+	  newX = this.pos[0] + this.vel[0];
+	  newY = this.pos[1] + this.vel[1];
+	  this.pos = [newX, newY];
+	}
+
+	module.exports = Fish;
 
 
 /***/ }
