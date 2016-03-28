@@ -44,20 +44,7 @@
 /* 0 */
 /***/ function(module, exports, __webpack_require__) {
 
-	// <script type="application/javascript" src="lib/game.js"></script>
-	// <script type="application/javascript" src="lib/gameView.js"></script>
-	// <script type="application/javascript" src="lib/util.js"></script>
-	// <script type="application/javascript" src="lib/movingObject.js"></script>
-	// <script type="application/javascript" src="lib/shark.js"></script>
-	// <script type="application/javascript" src="lib/spikes.js"></script>
-	// <script type="application/javascript" src="lib/topSpikes.js"></script>
-	// <script type="application/javascript" src="lib/bottomSpikes.js"></script>
-	// <script type="application/javascript" src="lib/scoreboard.js"></script>
-	// <script type="application/javascript" src="vendor/keymaster.js"></script>
-
-	// if this works, try it without the .js
 	var Game = __webpack_require__(1);
-	var GameView = __webpack_require__(8);
 	var Util = __webpack_require__(5);
 
 	var canvasEl = document.getElementsByTagName("canvas")[0];
@@ -70,22 +57,17 @@
 	game.home();
 
 
-	// new GameView(game, ctx).home();
-
-
 /***/ },
 /* 1 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var SideSpikes = __webpack_require__(2);
-	// var TopSpikes = require("./topSpikes.js");
-	// var BottomSpikes = require("./bottomSpikes.js");
+	var TopBottomSpikes = __webpack_require__(7);
 	var Scoreboard = __webpack_require__(3);
 	var Shark = __webpack_require__(4);
 	var Util = __webpack_require__(5);
 	var FishHolder = __webpack_require__(6);
 
-	var TopBottomSpikes = __webpack_require__(7);
 
 	function Game (ctx) {
 	    this.ctx = ctx;
@@ -93,145 +75,26 @@
 	    this.shark;
 	    this.fishHolder;
 	    this.scoreboard;
-	    this.direction;
 	    this.inGame = false;
 	    this.util = new Util(this);
+	    this.util.addDocumentListeners();
 	    this.highScore = 0;
 	    this.gamesPlayed = 0;
-
-	    // this.addShark();
-	    // this.addScoreboard();
-
-	    this.util.addDocumentListeners();
 	};
 
 	Game.BG_COLOR = "#F2F1EF";
-	// Game.DIM_X = 700;
-	// Game.DIM_Y = 900;
 	Game.DIM_X = 550;
 	Game.DIM_Y = 700;
-	// Game.FPS = 32;
-	// Game.NUM_SPIKES = 10;
 
-	Game.prototype.add = function (object) {
-	  // update this when you impliment inheritance
-
-	  if (object instanceof SideSpikes) {
-	    this.spikes.push(object);
-	  } else if (object instanceof Shark) {
-	    this.shark = object;
-	  } else {
-	    throw "ERROR";
-	  }
-	};
-
-	Game.prototype.addSpikes = function () {
-	  this.spikes.push(new SideSpikes({game: this}))
-
-	};
-
-	Game.prototype.addFishHolder = function () {
-	  this.fishHolder = new FishHolder ({
-	    game: this
-	  });
-	};
-
-	Game.prototype.addTopBottomSpikes = function () {
-	  this.spikes.push(new TopBottomSpikes({game: this, position: "top"}))
-	  this.spikes.push(new TopBottomSpikes({game: this, position: "bottom"}))
+	Game.prototype.home = function () {
+	  this.addShark();
+	  this.addTopBottomSpikes();
+	  this.addScoreboard();
+	  this.addFishHolder();
+	  this.floatShark();
 	}
-
-	Game.prototype.addShark = function () {
-	  var shark = new Shark({
-	    // pos: this.randomPosition(),
-	    game: this,
-	    canvas_width: Game.DIM_X,
-	    canvas_height: Game.DIM_Y
-	  });
-
-	  this.add(shark)
-	  this.direction = this.shark.direction;
-
-	  return shark;
-	};
-
-	Game.prototype.addScoreboard = function () {
-	  var scoreboard = new Scoreboard({
-	    game: this,
-	    shark: this.shark
-	  });
-
-	  this.scoreboard = scoreboard;
-	}
-
-	Game.prototype.bindKeyHandlers = function () {
-	  // var shark = this.shark;
-	  // key("space", function () {
-	  //   shark.jump()
-	  //   // console.log("space")
-	  // });
-	};
-
-
-	Game.prototype.allObjects = function () {
-	  // debugger
-	  return [].concat(this.scoreboard, this.spikes, this.shark, this.fishHolder);
-	};
-
-	Game.prototype.checkCollisions = function () {
-	  this.spikes.forEach(function (spike) {
-	      if(spike.isCollidedWith(this.shark)) {
-	        spike.collideWith(this.shark);
-	      }
-	  }.bind(this));
-
-	  if(this.fishHolder.isCollidedWith(this.shark)) {
-	    // debugger
-	    this.fishHolder.collideWith(this.shark);
-	  }
-	};
-
-	Game.prototype.draw = function (ctx) {
-	  ctx.clearRect(0, 0, Game.DIM_X, Game.DIM_Y);
-	  ctx.fillStyle = Game.BG_COLOR;
-	  ctx.fillRect(0, 0, Game.DIM_X, Game.DIM_Y);
-
-	  this.allObjects().forEach(function (object) {
-	    // debugger
-	    object.draw(ctx); // this is where the drawing takes place
-	  }.bind(this));
-	};
-
-	// Game.prototype.isOutOfBounds = function (pos) {
-	//   return (pos[0] < 0) || (pos[1] < 0) || (pos[0] > Game.DIM_X) ||
-	//           (pos[1] > Game.DIM_Y);
-	// };
-
-	Game.prototype.moveObjects = function () {
-	    this.shark.move();
-	};
-
-	// Game.prototype.randomPosition = function () {
-	//   return [
-	//     Game.DIM_X * Math.random(),
-	//     Game.DIM_Y * Math.random()
-	//   ];
-	// };
-
-	// Game.prototype.remove = function (object) {
-	//   if (object instanceof Spikes.Shark) {
-	//     this.bird.splice(this.birds.indexOf(object), 1);
-	//   } else if (object instanceof Spikes.Spike) {
-	//     var idx = this.spikes.indexOf(object);
-	//     this.spikes[idx] = new Spikes.Spike({game: this});
-	//   }
-	//   else {
-	//     throw "HUH"
-	//   }
-	// };
 
 	Game.prototype.over = function () {
-	  // alert("over!");
 	  cancelAnimationFrame(0);
 
 	  if(this.highScore === undefined || this.scoreboard.score > this.highScore) {
@@ -245,33 +108,35 @@
 	  this.home();
 	}
 
-	Game.prototype.step = function () {
-	  this.moveObjects();
-	  this.checkCollisions();
-	};
-
-	Game.prototype.home = function () {
+	Game.prototype.floatShark = function () {
 	  this.ctx.clearRect(0, 0, Game.DIM_X, Game.DIM_Y);
-	  console.log(this.highScore)
-	  if(!this.highScore) {
-	  }
-	  this.ctx.fillStyle = Game.BG_COLOR;
+	  this.ctx.fillStyle = "rgba(242, 241, 239, .7)";
 	  this.ctx.fillRect(0, 0, Game.DIM_X, Game.DIM_Y);
-	  this.addShark();
-	  this.addTopBottomSpikes();
-	  this.addScoreboard();
-	  // this.addScoreboard();
-	  // this.spikes.forEach(function (spike){spike.draw(this.ctx)}.bind(this))
-	  // this.scoreboard.draw(this.ctx)
-	  this.floatShark();
 
+	  this.draw(this.ctx);
+	  this.shark.float();
 
+	  this.ctx.fillStyle = "#6C7A89";
+	  this.ctx.font = "75px Verdana";
+	  this.ctx.textAlign = "center"
+	  this.ctx.fillText("SHARKTANK", 275, 150);
+
+	  this.ctx.font = "25px Verdana";
+	  this.ctx.textAlign = "center"
+	  this.ctx.fillStyle = "white";
+
+	  this.ctx.fillText("SPACE", 300, 300);
+	  this.ctx.fillText("TO SWIM", 300, 325);
+	  this.ctx.fillText("BEST SCORE: " + this.highScore, 300, 550);
+	  this.ctx.fillText("GAMES PLAYED: " + this.gamesPlayed, 300, 600);
+
+	  if(!this.inGame) {
+	    requestAnimationFrame(this.floatShark.bind(this))
+	  }
 	}
 
 	Game.prototype.start = function () {
 	  // this.lastTime = 0;
-	  // debugger;
-	  // this.addScoreboard();
 	  this.addSpikes();
 	  this.addFishHolder();
 	  this.util.addShark(this.shark);
@@ -284,10 +149,6 @@
 	}
 
 	Game.prototype.animate = function () {
-	  //took out time in the parameter
-	  // debugger
-	  // var timeDelta = time - this.lastTime;
-	  // took out timeDelta in this.step(timeDelta)
 	  this.step();
 	  this.draw(this.ctx);
 	  // this.lastTime = time;
@@ -296,35 +157,72 @@
 	  }
 	}
 
+	Game.prototype.addTopBottomSpikes = function () {
+	  this.spikes.push(new TopBottomSpikes({game: this, position: "top"}))
+	  this.spikes.push(new TopBottomSpikes({game: this, position: "bottom"}))
+	};
 
-	Game.prototype.floatShark = function () {
-	  this.ctx.clearRect(0, 0, Game.DIM_X, Game.DIM_Y);
-	  this.ctx.fillStyle = Game.BG_COLOR;
-	  this.ctx.fillRect(0, 0, Game.DIM_X, Game.DIM_Y);
-	  this.spikes[0].draw(this.ctx);
-	  this.spikes[1].draw(this.ctx);
-	  this.scoreboard.draw(this.ctx);
-	  this.shark.draw(this.ctx);
-	  this.shark.float();
+	Game.prototype.addSpikes = function () {
+	  this.spikes.push(new SideSpikes({game: this}))
+	};
 
-	  this.ctx.fillStyle = "#6C7A89";
-	  this.ctx.font = "75px Verdana";
-	  this.ctx.textAlign = "center"
-	  this.ctx.fillText("SHARKTANK", 275, 150);
+	Game.prototype.addFishHolder = function () {
+	  this.fishHolder = new FishHolder ({game: this});
+	};
 
+	Game.prototype.addShark = function () {
+	  var shark = new Shark({
+	    game: this,
+	    canvas_width: Game.DIM_X,
+	    canvas_height: Game.DIM_Y
+	  });
 
-	  this.ctx.font = "25px Verdana";
-	  this.ctx.textAlign = "center"
-	  this.ctx.fillStyle = "white";
-	  this.ctx.fillText("SPACE", 300, 300);
-	  this.ctx.fillText("TO SWIM", 300, 325);
-	  this.ctx.fillStyle = "#6C7A89";
-	  this.ctx.fillText("BEST SCORE: " + this.highScore, 300, 550);
-	  this.ctx.fillText("GAMES PLAYED: " + this.gamesPlayed, 300, 600);
-	  if(!this.inGame) {
-	    requestAnimationFrame(this.floatShark.bind(this))
-	  }
+	  this.shark = shark;
+	};
+
+	Game.prototype.addScoreboard = function () {
+	  var scoreboard = new Scoreboard({
+	    game: this,
+	    shark: this.shark
+	  });
+
+	  this.scoreboard = scoreboard;
 	}
+
+	Game.prototype.allObjects = function () {
+	  return [].concat(this.scoreboard, this.spikes, this.shark, this.fishHolder);
+	};
+
+	Game.prototype.draw = function (ctx) {
+	  ctx.clearRect(0, 0, Game.DIM_X, Game.DIM_Y);
+	  this.ctx.fillStyle = "rgba(242, 241, 239, .4)";
+	  ctx.fillRect(0, 0, Game.DIM_X, Game.DIM_Y);
+
+	  this.allObjects().forEach(function (object) {
+	    object.draw(ctx);
+	  }.bind(this));
+	};
+
+	Game.prototype.step = function () {
+	  this.moveObjects();
+	  this.checkCollisions();
+	};
+
+	Game.prototype.moveObjects = function () {
+	  this.shark.move();
+	};
+
+	Game.prototype.checkCollisions = function () {
+	  this.spikes.forEach(function (spike) {
+	    if(spike.isCollidedWith(this.shark)) {
+	      spike.collideWith(this.shark);
+	    }
+	  }.bind(this));
+
+	  if(this.fishHolder.isCollidedWith(this.shark)) {
+	    this.fishHolder.collideWith(this.shark);
+	  }
+	};
 
 
 	module.exports = Game;
@@ -339,15 +237,10 @@
 	  this.width = 550;
 	  this.height = 700;
 	  this.color = "#6C7A89";
-	  // this.direction = options.direction;
 	  this.position;
 	  this.spikeSet;
-	  // Sharktank.MovingObject.call(this, options);
 	  this.setCurrDirection();
 	};
-
-
-	// a scale of 8 would be awesome
 
 	SideSpikes.prototype.draw = function (ctx) {
 	  if(this.game.direction !== this.position) {
@@ -361,18 +254,12 @@
 
 	  for(var i = 2; i < this.spikeSet.length; i++) {
 	    ctx.beginPath();
-	    // debugger
-	    // ctx.moveTo(xStart, this.spikeSet[i] * 50 + 80);
-	    // ctx.lineTo(xMid, this.spikeSet[i] * 50 + 130 );
-
 	    ctx.moveTo(xStart, this.spikeSet[i] * 58 + 59);
 	    ctx.lineTo(xMid, this.spikeSet[i] * 58 + 88 );
 	    ctx.lineTo(xStart, this.spikeSet[i] * 58 + 117);
 	    ctx.fill();
 	    ctx.stroke();
 	  }
-
-
 	};
 
 	SideSpikes.prototype.setCurrDirection = function () {
@@ -381,12 +268,10 @@
 	};
 
 	SideSpikes.prototype.chooseSpikes = function (direction) {
-	  // return an array of possible spike positions
-	  var numSpikes = Math.ceil(Math.random()*4) + Math.floor(this.game.scoreboard.score/10);
+	  var numSpikes = Math.ceil(Math.random()*4) + Math.floor(this.game.scoreboard.score/12);
 	  if(numSpikes > 9) {
 	    numSpikes = 8
 	  }
-	  console.log(numSpikes)
 
 	  var spikeArray = []
 
@@ -406,14 +291,6 @@
 	  this.spikeSet = spikeArray;
 	};
 
-
-	// choose from a set of possible spike positions how many spikes i want
-
-
-
-	// Sharktank.Util.inherits(Spike, Sharktank.MovingObject);
-
-
 	SideSpikes.prototype.isCollidedWith = function (shark) {
 	  var collided = false;
 	  var objectXCoor = shark.pos[0];
@@ -431,44 +308,12 @@
 	        collided = true
 	      }
 	    }
-	  }
-
-
-	  //   this.position === "left" ? hitBoxWidth = 50 : hitBoxWidth = 650
-	  // }
-	  //
-	  //
-	  // if(this.position === "left") {
-	  //   for(var i = 2; i < this.spikeSet.length; i++ ) {
-	  //     if((shark.pos[1] > this.spikeSet[i] * 100 + 80) &&
-	  //         (shark.pos[1] < this.spikeSet[i] * 100 + 180) &&
-	  //           shark.pos[0] < 50) {
-	  //             // console.log(this.direction)
-	  //             // debugger
-	  //           collided = true;
-	  //         }
-	  //   }
-	  // } else {
-	  //   for(var i = 2; i < this.spikeSet.length; i++ ) {
-	  //     if((shark.pos[1] > this.spikeSet[i] * 100 + 80) &&
-	  //         (shark.pos[1] < this.spikeSet[i] * 100 + 180) &&
-	  //           shark.pos[0] > 650) {
-	  //             // console.log(this.direction)
-	  //             // debugger
-	  //           collided = true;
-	  //         }
-	  //   }
-	  // }
-	  // return shark.pos[1] > 830;
-
+	  };
 	  return collided
 	};
 
-	SideSpikes.prototype.collideWith = function (otherObject) {
-	  if(otherObject.constructor.name === "Shark") {
-	    otherObject.spaz();
-	    //gameover
-	  }
+	SideSpikes.prototype.collideWith = function (shark) {
+	  shark.spaz();
 	};
 
 	module.exports = SideSpikes;
@@ -482,18 +327,16 @@
 	  this.game = options.game;
 	  this.shark = options.shark;
 	  this.color = "#2980b9";
-	  // this.color = "#336E7B";
 	  this.score = 0;
 	  this.sharkDirection = "right";
-	  // this.pos = [this.game.DIM_X/2, this.game.DIM_Y/2 + 200];
 	  this.pos = [300, 350];
 	};
 
 	Scoreboard.prototype.draw = function (ctx) {
 	  this.checkScore();
 
+	  ctx.fillStyle = "rgba(41, 128, 185, .9)";
 
-	  ctx.fillStyle = this.color;
 	  ctx.beginPath();
 	  ctx.arc(
 	    this.pos[0], this.pos[1], 150, 0, 2 * Math.PI, true
@@ -511,13 +354,11 @@
 	Scoreboard.prototype.checkScore = function () {
 	  if(!this.shark.spazzed) {
 	    if(this.shark.direction != this.sharkDirection) {
-	      // debugger;
 	      this.sharkDirection = this.shark.direction;
 	      this.score += 1;
-	      // console.log("here")
 	    }
 	  }
-	}
+	};
 
 	module.exports = Scoreboard;
 
@@ -528,11 +369,9 @@
 
 	function Shark (options) {
 	  this.radius = Shark.RADIUS;
-	  // this.vel = options.vel || [5, -7];
 	  this.vel = [0, 1]
 	  this.color = "#F62459";
-	  // this.color = "#4183D7";
-	  this.pos = options.pos || [315, 350];
+	  this.pos = [315, 350];
 	  this.game = options.game;
 	  this.game_width = options.canvas_width;
 	  this.game_height = options.canvas_height;
@@ -540,43 +379,23 @@
 	  this.spazzed = false;
 	  this.opacity = 1;
 	  this.floatDirection = "down";
-
-
-	  this.img = new Image();
-	  this.img.src = "assets/shark.png"
-
-	  // this.shark = new Image();
-	  // this.shark.src = 'assets/shark.png';
-	  // Sharktank.MovingObject.call(this, options)
 	};
-
-	Shark.RADIUS = 5;
-
-	// Sharktank.Util.inherits(Shark, Sharktank.MovingObject);
 
 	Shark.prototype.draw = function (ctx) {
 	  ctx.fillStyle = this.color;
 
 	  if(this.spazzed) {
 	    ctx.fillStyle = "rgba(41, 128, 185, " + this.opacity + ")";
-	    // ctx.fillStyle = "rgba(215, 74, 65, " + this.opacity + ")";
-	    this.opacity -= 0.015;
+	    this.opacity -= 0.014;
 
 	    if(this.opacity <= 0) {
 	      this.game.over();
 	      this.pos = [1000, 1000]; //bandaid
 	    }
-
-	    // console.log(this.opacity)
 	  }
 
-
-	  // this.vel[1] = 3
-
-	  // ctx.drawImage(this.shark, this.pos[0], this.pos[1], 100, 100);
 	  if(this.opacity != 0) {
 	    ctx.beginPath();
-
 
 	    if(this.direction === "right") {
 
@@ -591,9 +410,6 @@
 	        ctx.lineTo(this.pos[0] + 20, this.pos[1]);
 	        ctx.lineTo(this.pos[0], this.pos[1]);
 	      }
-
-	      //drawing head
-
 
 	      //drawing the fin
 	      ctx.lineTo(this.pos[0] - 5, this.pos[1]);
@@ -628,7 +444,7 @@
 	      if(!this.spazzed) {
 	        ctx.beginPath();
 	        ctx.arc(
-	          this.pos[0] - 5, this.pos[1] + 8, this.radius, 0, 2 * Math.PI, true
+	          this.pos[0] - 5, this.pos[1] + 8, 5, 0, 2 * Math.PI, true
 	        );
 	        ctx.fill();
 	        ctx.stroke();
@@ -648,9 +464,6 @@
 	        ctx.lineTo(this.pos[0] - 20, this.pos[1]);
 	        ctx.lineTo(this.pos[0], this.pos[1]);
 	      }
-
-	      //drawing head
-
 
 	      //drawing the fin
 	      ctx.lineTo(this.pos[0] + 5, this.pos[1]);
@@ -686,39 +499,16 @@
 	      if(!this.spazzed) {
 	        ctx.beginPath();
 	        ctx.arc(
-	          this.pos[0] + 5, this.pos[1] + 8, this.radius, 0, 2 * Math.PI, true
+	          this.pos[0] + 5, this.pos[1] + 8, 5, 0, 2 * Math.PI, true
 	        );
 	        ctx.fill();
 	        ctx.stroke();
 	      }
 	    }
 	  }
-	}
-
-	// var NORMAL_FRAME_TIME_DELTA = 1000/60;
+	};
 
 	Shark.prototype.move = function () {
-	  // took in timeDelta
-
-	  //timeDelta is number of milliseconds since last move
-	  //if the computer is busy the time delta will be larger
-	  //in this case the MovingObject should move farther in this frame
-	  //velocity of object is how far it should move in 1/60th of a second
-
-	  // var velocityScale = timeDelta / NORMAL_FRAME_TIME_DELTA,
-	  //     offsetX = this.vel[0] * velocityScale,
-	  //     offsetY = this.vel[1] * velocityScale;
-	  //     debugger
-	  // newX = this.pos[0] + offsetX;
-	  // newY = this.pos[1] + offsetY;
-	  //
-	  //
-	  //
-	  //
-	  // this.pos = [newX, newY];
-
-
-
 	  offsetX = this.vel[0];
 	  offsetY = this.vel[1];
 
@@ -735,21 +525,15 @@
 	      this.direction = "left";
 	      this.game.direction = "left";
 	    }
+	  };
 
-
-	  }
-	  // you really dont need height, rather you can just check collissions and same game over
-	  // i mean you can keep this in and make him bounce all over hte place afterwards
-	  if(newY > this.game_height - this.radius || newY < 0 + this.radius ) {
+	  if(newY > this.game_height - 60 || newY < 0 + 60 ) {
 	    this.vel[1] = -this.vel[1]
+	  };
 
-	  }
 	  this.pos = [newX, newY];
 	  this.calculateY();
-	  console.log(this.direction )
-
-	}
-
+	};
 
 	Shark.prototype.float = function () {
 	  if(this.floatDirection == "down" && this.vel[1] < 1.3) {
@@ -766,27 +550,17 @@
 	  newX = this.pos[0] + this.vel[0];
 	  newY = this.pos[1] + this.vel[1];
 	  this.pos = [newX, newY];
-	}
+	};
 
 	Shark.prototype.calculateY = function () {
 	  if(this.vel[1] < 7) {
 	    this.vel[1] += 0.5
 	  }
-
-	  // if(this.vel[1] > 0) {
-	  //   if(this.vel[1] < 7){
-	  //     this.vel[1] += 1
-	  //   }
-	  // }
-	  // console.log(this.vel[1])
-	}
+	};
 
 	Shark.prototype.jump = function () {
-	  // debugger;
-	  // this.vel = [5, -11];
 	  this.vel[1] = -11;
-	  // console.log("inside jump")
-	}
+	};
 
 	Shark.prototype.spaz = function () {
 	  if(this.direction === "right"){
@@ -794,19 +568,9 @@
 	  } else {
 	    this.pos[1] > 640 ? this.vel = [8,-12] : this.vel = [-8, 12]
 	  }
-	  console.log("spaz")
 	  this.spazzed = true;
-	  // this.game.over();
+	};
 
-
-	}
-
-
-	//
-	// Shark.prototype.relocate = function () {
-	//   this.pos = this.game.randomPosition();
-	//   this.vel = [0,0];
-	// };
 	module.exports = Shark;
 
 
@@ -821,7 +585,6 @@
 
 	Util.prototype.addDocumentListeners = function () {
 	  document.addEventListener('keydown', this.keyPressed.bind(this));
-	  // document.addEventListener("keyup", this.keyReleased.bind(this));
 	};
 
 	Util.prototype.addShark = function (shark) {
@@ -835,64 +598,11 @@
 	      if(this.game.inGame === false) {
 	        this.game.inGame = true;
 	        this.game.start();
-	      } else {
+	      } else if (!this.shark.spazzed){
 	        this.shark.jump();
 	      }
 	      break;
-	    case 13:
-	      event.preventDefault();
-	      if(this.shark.spazzed && this.game.inGame) {
-	        this.game.spikes = [];
-	        this.game.shark = null;
-	        this.game.scoreboard = null;
-	        this.game.inGame = false;
-	        this.game.home();
-	      }
-	      break;
 	  }
-	};
-
-	Util.prototype.keyReleased = function (event) {
-
-	};
-
-
-
-
-	// Normalize the length of the vector to 1, maintaining direction.
-	// var dir = Util.dir = function (vec) {
-	//   var norm = Util.norm(vec);
-	//   return Util.scale(vec, 1 / norm);
-	// };
-
-	// Find distance between two points.
-	// var dist = Util.dist = function (pos1, pos2) {
-	//   return Math.sqrt(
-	//     Math.pow(pos1[0] - pos2[0], 2) + Math.pow(pos1[1] - pos2[1], 2)
-	//   );
-	// };
-
-	// Find the length of the vector.
-	// var norm = Util.norm = function (vec) {
-	//   return Util.dist([0, 0], vec);
-	// };
-
-	// Return a randomly oriented vector with the given length.
-	// var randomVec = Util.randomVec = function (length) {
-	//   var deg = 2 * Math.PI * Math.random();
-	//
-	//   return scale([Math.sin(deg), Math.cos(deg)], length);
-	// };
-
-	// Scale the length of a vector by the given amount.
-	// var scale = Util.scale = function (vec, m) {
-	//   return [vec[0] * m, vec[1] * m];
-	// };
-
-	var inherits = Util.inherits = function (ChildClass, BaseClass) {
-	  function Surrogate () { this.constructor = ChildClass };
-	  Surrogate.prototype = BaseClass.prototype;
-	  ChildClass.prototype = new Surrogate();
 	};
 
 	module.exports = Util;
@@ -916,7 +626,7 @@
 	FishHolder.prototype.randomizeFish = function () {
 	  if(this.fishHolder.length === 0 && this.sharkDirection != this.game.shark.direction) {
 	    this.sharkDirection = this.game.shark.direction;
-	    if(Math.ceil(Math.random()*3) === 3) {
+	    if(Math.ceil(Math.random()*4) === 4) { //1 in 4 chance steak will appear
 	      var x = Math.ceil(Math.random()*390) + 80;
 	      var y = Math.ceil(Math.random()*500) + 100;
 	      this.fishHolder.push(new Fish({pos: [x, y]}));
@@ -983,14 +693,12 @@
 /* 7 */
 /***/ function(module, exports) {
 
-	// var Spike = require("./spike.js");
-
 	function TopBottomSpikes (options) {
 	  this.game = options.game;
 	  this.width = 550;
 	  this.height = 700;
 	  this.color = "#6C7A89";
-	  this.position = options.position; //"top" || "bottom"
+	  this.position = options.position;
 	  this.x;
 	  this.y;
 	  this.spikeIncrementer;
@@ -1035,10 +743,7 @@
 	  }
 
 	  ctx.stroke();
-
 	};
-
-
 
 	TopBottomSpikes.prototype.isCollidedWith = function (otherObject) {
 	  if(this.position === "top") {
@@ -1048,54 +753,16 @@
 	  }
 	}
 
-	TopBottomSpikes.prototype.collideWith = function (otherObject) {
-	  if(otherObject.constructor.name === "Shark") {
-	    otherObject.spaz();
-	  }
+	TopBottomSpikes.prototype.collideWith = function (shark) {
+	  shark.spaz();
 	};
-
 
 
 	module.exports = TopBottomSpikes;
 
 
 /***/ },
-/* 8 */
-/***/ function(module, exports) {
-
-	function GameView (game, ctx) {
-	    this.ctx = ctx;
-	    this.game = game;
-	    // this.shark = this.game.addShark();
-	};
-
-	  // GameView.prototype.bindKeyHandlers = function () {
-	  //   var shark = this.shark;
-	  //   key("space", function () {
-	  //     shark.jump()
-	  //     console.log("space")
-	  //   });
-	  // };
-
-	GameView.prototype.start = function () {
-	  this.lastTime = 0;
-	  requestAnimationFrame(this.animate.bind(this));
-	};
-
-	GameView.prototype.animate = function (time) {
-	  var timeDelta = time - this.lastTime;
-
-	  this.game.step(timeDelta);
-	  this.game.draw(this.ctx);
-	  this.lastTime = time;
-
-	  requestAnimationFrame(this.animate.bind(this));
-	};
-
-	module.exports = GameView;
-
-
-/***/ },
+/* 8 */,
 /* 9 */
 /***/ function(module, exports) {
 
@@ -1108,16 +775,8 @@
 	};
 
 	Fish.prototype.draw = function (ctx) {
-	  // ctx.fillStyle = this.color;
-	  //
-	  // ctx.beginPath();
-	  // ctx.arc(
-	  //   this.pos[0], this.pos[1], 20, 0, 2 * Math.PI, true
-	  // );
-	  // ctx.fill();
-	  // ctx.stroke();
 	  ctx.drawImage(this.img, this.pos[0], this.pos[1])
-	}
+	};
 
 	Fish.prototype.move = function () {
 	  if(this.direction == "down" && this.vel[1] < 1.3) {
@@ -1131,12 +790,11 @@
 	    this.direction = "down";
 	    this.vel[1] = 1
 	  }
-	  console.log(this.direction)
-	  console.log(this.vel[1])
+
 	  newX = this.pos[0] + this.vel[0];
 	  newY = this.pos[1] + this.vel[1];
 	  this.pos = [newX, newY];
-	}
+	};
 
 	module.exports = Fish;
 

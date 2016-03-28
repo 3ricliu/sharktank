@@ -4,11 +4,10 @@ canvas {
     margin-left: auto;
     margin-right: auto;
     display: block;
-    /*width: 800px;*/
 }
 
 html {
-  background: url("https://linkpot.files.wordpress.com/2010/10/001desktop.jpg") no-repeat center center fixed;
+  background: url("http://res.cloudinary.com/dlvkhiu0c/image/upload/v1459072511/001desktop_uu3sux.jpg") no-repeat center center fixed;
   -webkit-background-size: cover;
   -moz-background-size: cover;
   -o-background-size: cover;
