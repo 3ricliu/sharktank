@@ -78,8 +78,8 @@
 	    this.inGame = false;
 	    this.util = new Util(this);
 	    this.util.addDocumentListeners();
-	    this.highScore = 0;
-	    this.gamesPlayed = 0;
+	    this.highScore = localStorage.highScore || 0;
+	    this.gamesPlayed = localStorage.gamesPlayed || 0;
 	};
 
 	Game.BG_COLOR = "#F2F1EF";
@@ -97,9 +97,11 @@
 	Game.prototype.over = function () {
 	  cancelAnimationFrame(0);
 
-	  if(this.highScore === undefined || this.scoreboard.score > this.highScore) {
+	  if((this.highScore === undefined || localStorage.highScore === undefined) || (this.scoreboard.score > this.highScore || this.scoreboard.score > localStorage.highScore)) {
 	    this.highScore = this.scoreboard.score
+	    localStorage.highScore = this.scoreboard.score
 	  }
+
 
 	  this.spikes = [];
 	  this.shark = null;
@@ -144,6 +146,7 @@
 	  this.shark.vel = [5,-7];
 	  this.animate();
 	  this.gamesPlayed += 1;
+	  localStorage.gamesPlayed === undefined ? localStorage.gamesPlayed = 1 : localStorage.gamesPlayed += 1
 	  // requestAnimationFrame(this.animate.bind(this));
 	  //UNCOMMENT THIS WHEN YOU"RE PLAY
 	}
@@ -487,6 +490,14 @@
 	      ctx.lineTo(this.pos[0] - 5, this.pos[1]);
 	      ctx.lineTo(this.pos[0] - 5 - 15, this.pos[1] - 15);
 	      ctx.lineTo(this.pos[0] - 5 - 15, this.pos[1]);
+
+	      var points = [
+	        [ -25, 0 ],
+	        [ -35, 5 ],
+	        [ -55, -10]
+	      ];
+
+	      
 
 	      //drawing the body
 	      ctx.lineTo(this.pos[0] - 25, this.pos[1]); // line to body
