@@ -45,7 +45,7 @@
 /***/ function(module, exports, __webpack_require__) {
 
 	var Game = __webpack_require__(1);
-	var Util = __webpack_require__(5);
+	var Util = __webpack_require__(6);
 
 	var canvasEl = document.getElementsByTagName("canvas")[0];
 	canvasEl.width = Game.DIM_X;
@@ -62,11 +62,11 @@
 /***/ function(module, exports, __webpack_require__) {
 
 	var SideSpikes = __webpack_require__(2);
-	var TopBottomSpikes = __webpack_require__(7);
-	var Scoreboard = __webpack_require__(3);
-	var Shark = __webpack_require__(4);
-	var Util = __webpack_require__(5);
-	var FishHolder = __webpack_require__(6);
+	var TopBottomSpikes = __webpack_require__(3);
+	var Scoreboard = __webpack_require__(4);
+	var Shark = __webpack_require__(5);
+	var Util = __webpack_require__(6);
+	var FishHolder = __webpack_require__(7);
 
 
 	function Game (ctx) {
@@ -78,8 +78,8 @@
 	    this.inGame = false;
 	    this.util = new Util(this);
 	    this.util.addDocumentListeners();
-	    this.highScore = 0;
-	    this.gamesPlayed = 0;
+	    this.highScore = localStorage.highScore || 0;
+	    this.gamesPlayed = localStorage.gamesPlayed || 0;
 	};
 
 	Game.BG_COLOR = "#F2F1EF";
@@ -97,9 +97,11 @@
 	Game.prototype.over = function () {
 	  cancelAnimationFrame(0);
 
-	  if(this.highScore === undefined || this.scoreboard.score > this.highScore) {
+	  if((this.highScore === undefined || localStorage.highScore === undefined) || (this.scoreboard.score > this.highScore || this.scoreboard.score > localStorage.highScore)) {
 	    this.highScore = this.scoreboard.score
+	    localStorage.highScore = this.scoreboard.score
 	  }
+
 
 	  this.spikes = [];
 	  this.shark = null;
@@ -144,6 +146,7 @@
 	  this.shark.vel = [5,-7];
 	  this.animate();
 	  this.gamesPlayed += 1;
+	  localStorage.gamesPlayed === undefined ? localStorage.gamesPlayed = 1 : localStorage.gamesPlayed += 1
 	  // requestAnimationFrame(this.animate.bind(this));
 	  //UNCOMMENT THIS WHEN YOU"RE PLAY
 	}
@@ -323,6 +326,78 @@
 /* 3 */
 /***/ function(module, exports) {
 
+	function TopBottomSpikes (options) {
+	  this.game = options.game;
+	  this.width = 550;
+	  this.height = 700;
+	  this.color = "#6C7A89";
+	  this.position = options.position;
+	  this.x;
+	  this.y;
+	  this.spikeIncrementer;
+	  this.rectangle;
+
+	};
+
+	TopBottomSpikes.prototype.calculateXAndY = function () {
+	  if (this.position === "top") {
+	    this.x = 0;
+	    this.y = 60;
+	    this.rectangle = 0;
+
+	    this.spikeIncrementer = 25;
+	  } else if (this.position == "bottom") {
+	    this.x = 0;
+	    this.y = 640;
+	    this.rectangle = 675;
+
+	    this.spikeIncrementer = 675;
+	  }
+	};
+
+	TopBottomSpikes.prototype.draw = function (ctx) {
+	  ctx.fillStyle = this.color;
+	  this.calculateXAndY();
+
+	  ctx.beginPath();
+	  ctx.rect(this.x, this.rectangle, this.width, 25)
+	  ctx.fill();
+
+	  ctx.beginPath();
+	  ctx.moveTo(this.x, this.spikeIncrementer);
+	  while(this.x < this.width) {
+	    this.x += 17;
+	    ctx.lineTo(this.x, this.spikeIncrementer);
+	    this.x += 30
+	    ctx.lineTo(this.x, this.y)
+	    this.x += 30
+	    ctx.lineTo(this.x, this.spikeIncrementer);
+	    ctx.fill();
+	  }
+
+	  ctx.stroke();
+	};
+
+	TopBottomSpikes.prototype.isCollidedWith = function (otherObject) {
+	  if(this.position === "top") {
+	    return otherObject.pos[1] < this.y;
+	  } else if (this.position == "bottom") {
+	    return otherObject.pos[1] > this.y;
+	  }
+	}
+
+	TopBottomSpikes.prototype.collideWith = function (shark) {
+	  shark.spaz();
+	};
+
+
+	module.exports = TopBottomSpikes;
+
+
+/***/ },
+/* 4 */
+/***/ function(module, exports) {
+
 	function Scoreboard (options) {
 	  this.game = options.game;
 	  this.shark = options.shark;
@@ -364,7 +439,7 @@
 
 
 /***/ },
-/* 4 */
+/* 5 */
 /***/ function(module, exports) {
 
 	function Shark (options) {
@@ -416,6 +491,14 @@
 	      ctx.lineTo(this.pos[0] - 5 - 15, this.pos[1] - 15);
 	      ctx.lineTo(this.pos[0] - 5 - 15, this.pos[1]);
 
+	      var points = [
+	        [ -25, 0 ],
+	        [ -35, 5 ],
+	        [ -55, -10]
+	      ];
+
+	      
+
 	      //drawing the body
 	      ctx.lineTo(this.pos[0] - 25, this.pos[1]); // line to body
 	      ctx.lineTo(this.pos[0] - 25 - 10, this.pos[1] + 5); //line down
@@ -431,14 +514,24 @@
 	      ctx.fillStyle = "white";
 	      var sharkArmY;
 	      ctx.beginPath();
-
 	      ctx.moveTo(this.pos[0] - 10, this.pos[1] + 25);
-	      this.vel[1] < 4 ? sharkArmY = 15 : sharkArmY = -15
-	      ctx.lineTo(this.pos[0] - 10 - 15, this.pos[1] + 25 + sharkArmY);
-	      ctx.lineTo(this.pos[0] - 10 - 15, this.pos[1] + 25);
-	      ctx.lineTo(this.pos[0] - 10, this.pos[1] + 25);
-	      ctx.fill();
-	      ctx.stroke();
+
+	      if(this.game.inGame) {
+	        this.vel[1] < 4 ? sharkArmY = 15 : sharkArmY = -15
+	        ctx.lineTo(this.pos[0] - 10 - 15, this.pos[1] + 25 + sharkArmY);
+	        ctx.lineTo(this.pos[0] - 10 - 15, this.pos[1] + 25);
+	        ctx.lineTo(this.pos[0] - 10, this.pos[1] + 25);
+	        ctx.fill();
+	        ctx.stroke();
+	      } else {
+	        this.vel[1] > 0.1 ? sharkArmY = -15 : sharkArmY = 15
+	        ctx.lineTo(this.pos[0] - 10 - 15, this.pos[1] + 25 + sharkArmY);
+	        ctx.lineTo(this.pos[0] - 10 - 15, this.pos[1] + 25);
+	        ctx.lineTo(this.pos[0] - 10, this.pos[1] + 25);
+	        ctx.fill();
+	        ctx.stroke();
+	      }
+
 
 	      //draw the eye
 	      if(!this.spazzed) {
@@ -575,7 +668,7 @@
 
 
 /***/ },
-/* 5 */
+/* 6 */
 /***/ function(module, exports) {
 
 	function Util (game) {
@@ -585,6 +678,7 @@
 
 	Util.prototype.addDocumentListeners = function () {
 	  document.addEventListener('keydown', this.keyPressed.bind(this));
+	  document.addEventListener('click', this.mouseClicked.bind(this));
 	};
 
 	Util.prototype.addShark = function (shark) {
@@ -605,14 +699,24 @@
 	  }
 	};
 
+	Util.prototype.mouseClicked = function (event) {
+	  event.preventDefault();
+	  if(this.game.inGame === false) {
+	    this.game.inGame = true;
+	    this.game.start();
+	  } else if (!this.shark.spazzed){
+	    this.shark.jump();
+	  }
+	};
+
 	module.exports = Util;
 
 
 /***/ },
-/* 6 */
+/* 7 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var Fish = __webpack_require__(9);
+	var Fish = __webpack_require__(8);
 
 	function FishHolder (options) {
 	  this.game = options.game;
@@ -690,80 +794,7 @@
 
 
 /***/ },
-/* 7 */
-/***/ function(module, exports) {
-
-	function TopBottomSpikes (options) {
-	  this.game = options.game;
-	  this.width = 550;
-	  this.height = 700;
-	  this.color = "#6C7A89";
-	  this.position = options.position;
-	  this.x;
-	  this.y;
-	  this.spikeIncrementer;
-	  this.rectangle;
-
-	};
-
-	TopBottomSpikes.prototype.calculateXAndY = function () {
-	  if (this.position === "top") {
-	    this.x = 0;
-	    this.y = 60;
-	    this.rectangle = 0;
-
-	    this.spikeIncrementer = 25;
-	  } else if (this.position == "bottom") {
-	    this.x = 0;
-	    this.y = 640;
-	    this.rectangle = 675;
-
-	    this.spikeIncrementer = 675;
-	  }
-	};
-
-	TopBottomSpikes.prototype.draw = function (ctx) {
-	  ctx.fillStyle = this.color;
-	  this.calculateXAndY();
-
-	  ctx.beginPath();
-	  ctx.rect(this.x, this.rectangle, this.width, 25)
-	  ctx.fill();
-
-	  ctx.beginPath();
-	  ctx.moveTo(this.x, this.spikeIncrementer);
-	  while(this.x < this.width) {
-	    this.x += 17;
-	    ctx.lineTo(this.x, this.spikeIncrementer);
-	    this.x += 30
-	    ctx.lineTo(this.x, this.y)
-	    this.x += 30
-	    ctx.lineTo(this.x, this.spikeIncrementer);
-	    ctx.fill();
-	  }
-
-	  ctx.stroke();
-	};
-
-	TopBottomSpikes.prototype.isCollidedWith = function (otherObject) {
-	  if(this.position === "top") {
-	    return otherObject.pos[1] < this.y;
-	  } else if (this.position == "bottom") {
-	    return otherObject.pos[1] > this.y;
-	  }
-	}
-
-	TopBottomSpikes.prototype.collideWith = function (shark) {
-	  shark.spaz();
-	};
-
-
-	module.exports = TopBottomSpikes;
-
-
-/***/ },
-/* 8 */,
-/* 9 */
+/* 8 */
 /***/ function(module, exports) {
 
 	function Fish (options) {
