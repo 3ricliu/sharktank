@@ -78,8 +78,8 @@
 	    this.inGame = false;
 	    this.util = new Util(this);
 	    this.util.addDocumentListeners();
-	    this.highScore = localStorage.highScore || 0;
-	    this.gamesPlayed = localStorage.gamesPlayed || 0;
+	    // this.highScore = parseInt(localStorage.highScore) || 0;
+	    // this.gamesPlayed = parseInt(localStorage.gamesPlayed) || 0;
 	};
 
 	Game.BG_COLOR = "#F2F1EF";
@@ -97,10 +97,20 @@
 	Game.prototype.over = function () {
 	  cancelAnimationFrame(0);
 
-	  if((this.highScore === undefined || localStorage.highScore === undefined) || (this.scoreboard.score > this.highScore || this.scoreboard.score > localStorage.highScore)) {
-	    this.highScore = this.scoreboard.score
-	    localStorage.highScore = this.scoreboard.score
+	  if(localStorage.highScore === undefined) {
+	    localStorage.highScore = this.scoreboard.score;
+	  } else {
+	    if(parseInt(localStorage.highScore) < this.scoreboard.score) {
+	      localStorage.highScore = this.scoreboard.score;
+	    }
 	  }
+
+	  // localStorage.highScore === undefined ? localStorage.highScore = this.scoreboard.score || localStorage.highScore
+	  //
+	  // if((this.highScore === undefined || localStorage.highScore === undefined) || (this.scoreboard.score > this.highScore || this.scoreboard.score > localStorage.highScore)) {
+	  //   this.highScore = this.scoreboard.score
+	  //   localStorage.highScore = this.scoreboard.score
+	  // }
 
 
 	  this.spikes = [];
@@ -129,8 +139,8 @@
 
 	  this.ctx.fillText("SPACE", 300, 300);
 	  this.ctx.fillText("TO SWIM", 300, 325);
-	  this.ctx.fillText("BEST SCORE: " + this.highScore, 300, 550);
-	  this.ctx.fillText("GAMES PLAYED: " + this.gamesPlayed, 300, 600);
+	  this.ctx.fillText("BEST SCORE: " + localStorage.highScore, 300, 550);
+	  this.ctx.fillText("GAMES PLAYED: " + localStorage.gamesPlayed, 300, 600);
 
 	  if(!this.inGame) {
 	    requestAnimationFrame(this.floatShark.bind(this))
@@ -145,8 +155,8 @@
 	  this.shark.floatDirection = null;
 	  this.shark.vel = [5,-7];
 	  this.animate();
-	  this.gamesPlayed += 1;
-	  localStorage.gamesPlayed === undefined ? localStorage.gamesPlayed = 1 : localStorage.gamesPlayed += 1
+	  localStorage.gamesPlayed === undefined ? localStorage.gamesPlayed = 1 : localStorage.gamesPlayed = parseInt(localStorage.gamesPlayed) + 1
+	  // this.gamesPlayed += 1;
 	  // requestAnimationFrame(this.animate.bind(this));
 	  //UNCOMMENT THIS WHEN YOU"RE PLAY
 	}
