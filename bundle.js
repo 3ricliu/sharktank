@@ -97,7 +97,7 @@
 
 	Game.prototype.over = function () {
 	  cancelAnimationFrame(0);
-	  debugger
+
 	  if(this.storage.highScore === undefined) {
 	    this.storage.highScore.setItem("highScore", this.scoreboard.score)
 	  } else {
@@ -156,7 +156,7 @@
 	  this.shark.floatDirection = null;
 	  this.shark.vel = [5,-7];
 	  this.animate();
-	  this.storage.gamesPlayed === undefined ? this.storage.setItem("gamesPlayed", 1) : this.storage.gamesPlayed.setItem("gamesPlayed", (parseInt(this.storage.gamesPlayed) + 1))
+	  this.storage.gamesPlayed === undefined ? this.storage.setItem("gamesPlayed", 1) : this.storage.setItem("gamesPlayed", (parseInt(this.storage.gamesPlayed) + 1))
 	  // this.gamesPlayed += 1;
 	  // requestAnimationFrame(this.animate.bind(this));
 	  //UNCOMMENT THIS WHEN YOU"RE PLAY
