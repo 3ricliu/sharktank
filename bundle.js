@@ -97,7 +97,7 @@
 
 	Game.prototype.over = function () {
 	  cancelAnimationFrame(0);
-
+	  debugger
 	  if(this.storage.highScore === undefined) {
 	    this.storage.highScore.setItem("highScore", this.scoreboard.score)
 	  } else {
