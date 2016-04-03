@@ -78,6 +78,7 @@
 	    this.inGame = false;
 	    this.util = new Util(this);
 	    this.util.addDocumentListeners();
+	    localStorage = localStorage;
 	    // this.highScore = parseInt(localStorage.highScore) || 0;
 	    // this.gamesPlayed = parseInt(localStorage.gamesPlayed) || 0;
 	};
@@ -149,6 +150,7 @@
 
 	Game.prototype.start = function () {
 	  // this.lastTime = 0;
+		debugger
 	  this.addSpikes();
 	  this.addFishHolder();
 	  this.util.addShark(this.shark);
@@ -507,7 +509,7 @@
 	        [ -55, -10]
 	      ];
 
-	      
+
 
 	      //drawing the body
 	      ctx.lineTo(this.pos[0] - 25, this.pos[1]); // line to body
