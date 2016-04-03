@@ -66,20 +66,20 @@
 	var Scoreboard = __webpack_require__(4);
 	var Shark = __webpack_require__(5);
 	var Util = __webpack_require__(6);
-	var FishHolder = __webpack_require__(7);
+	var BoostHolder = __webpack_require__(9);
 
 
 	function Game (ctx) {
 	    this.ctx = ctx;
 	    this.spikes = [];
 	    this.shark;
-	    this.fishHolder;
+	    this.boostHolder;
 	    this.scoreboard;
 	    this.inGame = false;
 	    this.util = new Util(this);
 	    this.util.addDocumentListeners();
-	    this.highScore = localStorage.highScore || 0;
-	    this.gamesPlayed = localStorage.gamesPlayed || 0;
+	    this.highScore = parseInt(localStorage.highScore) || 0;
+	    this.gamesPlayed = parseInt(localStorage.gamesPlayed) || 0;
 	};
 
 	Game.BG_COLOR = "#F2F1EF";
@@ -90,18 +90,17 @@
 	  this.addShark();
 	  this.addTopBottomSpikes();
 	  this.addScoreboard();
-	  this.addFishHolder();
+	  this.addBoostHolder();
 	  this.floatShark();
 	}
 
 	Game.prototype.over = function () {
 	  cancelAnimationFrame(0);
 
-	  if((this.highScore === undefined || localStorage.highScore === undefined) || (this.scoreboard.score > this.highScore || this.scoreboard.score > localStorage.highScore)) {
+	  if(this.highScore === undefined || this.scoreboard.score > this.highScore) {
 	    this.highScore = this.scoreboard.score
-	    localStorage.highScore = this.scoreboard.score
+	    localStorage.setItem("highScore", this.scoreboard.score)
 	  }
-
 
 	  this.spikes = [];
 	  this.shark = null;
@@ -140,13 +139,21 @@
 	Game.prototype.start = function () {
 	  // this.lastTime = 0;
 	  this.addSpikes();
-	  this.addFishHolder();
+	  this.addBoostHolder();
 	  this.util.addShark(this.shark);
 	  this.shark.floatDirection = null;
 	  this.shark.vel = [5,-7];
 	  this.animate();
-	  this.gamesPlayed += 1;
-	  localStorage.gamesPlayed === undefined ? localStorage.gamesPlayed = 1 : localStorage.gamesPlayed += 1
+	  // this.gamesPlayed += 1;
+
+	  if(this.gamesPlayed === undefined) {
+	    this.gamesPlayed = 1
+	    localStorage.setItem("gamesPlayed", 1)
+	  } else {
+	    this.gamesPlayed += 1
+	    curr_games_played = parseInt(localStorage.gamesPlayed) + 1
+	    localStorage.setItem("gamesPlayed", curr_games_played)
+	  }
 	  // requestAnimationFrame(this.animate.bind(this));
 	  //UNCOMMENT THIS WHEN YOU"RE PLAY
 	}
@@ -169,8 +176,8 @@
 	  this.spikes.push(new SideSpikes({game: this}))
 	};
 
-	Game.prototype.addFishHolder = function () {
-	  this.fishHolder = new FishHolder ({game: this});
+	Game.prototype.addBoostHolder = function () {
+	  this.boostHolder = new BoostHolder ({game: this});
 	};
 
 	Game.prototype.addShark = function () {
@@ -193,7 +200,7 @@
 	}
 
 	Game.prototype.allObjects = function () {
-	  return [].concat(this.scoreboard, this.spikes, this.shark, this.fishHolder);
+	  return [].concat(this.scoreboard, this.spikes, this.shark, this.boostHolder);
 	};
 
 	Game.prototype.draw = function (ctx) {
@@ -222,8 +229,8 @@
 	    }
 	  }.bind(this));
 
-	  if(this.fishHolder.isCollidedWith(this.shark)) {
-	    this.fishHolder.collideWith(this.shark);
+	  if(this.boostHolder.isCollidedWith(this.shark)) {
+	    this.boostHolder.collideWith(this.shark);
 	  }
 	};
 
@@ -382,7 +389,7 @@
 	  if(this.position === "top") {
 	    return otherObject.pos[1] < this.y;
 	  } else if (this.position == "bottom") {
-	    return otherObject.pos[1] > this.y;
+	    return otherObject.pos[1] > this.y - 19;
 	  }
 	}
 
@@ -497,7 +504,7 @@
 	        [ -55, -10]
 	      ];
 
-	      
+
 
 	      //drawing the body
 	      ctx.lineTo(this.pos[0] - 25, this.pos[1]); // line to body
@@ -659,7 +666,7 @@
 	  if(this.direction === "right"){
 	      this.pos[1] > 640 ? this.vel = [-8,-12] : this.vel = [8, -12]
 	  } else {
-	    this.pos[1] > 640 ? this.vel = [8,-12] : this.vel = [-8, 12]
+	    this.pos[1] > 620 ? this.vel = [8,-12] : this.vel = [-8, 12]
 	  }
 	  this.spazzed = true;
 	};
@@ -713,87 +720,7 @@
 
 
 /***/ },
-/* 7 */
-/***/ function(module, exports, __webpack_require__) {
-
-	var Fish = __webpack_require__(8);
-
-	function FishHolder (options) {
-	  this.game = options.game;
-	  this.fishHolder = [];
-	  this.sharkDirection = this.game.shark.direction;
-	  this.opacity = 1;
-	  this.eaten = false;
-	  this.fishCoor;
-	};
-
-	FishHolder.prototype.randomizeFish = function () {
-	  if(this.fishHolder.length === 0 && this.sharkDirection != this.game.shark.direction) {
-	    this.sharkDirection = this.game.shark.direction;
-	    if(Math.ceil(Math.random()*4) === 4) { //1 in 4 chance steak will appear
-	      var x = Math.ceil(Math.random()*390) + 80;
-	      var y = Math.ceil(Math.random()*500) + 100;
-	      this.fishHolder.push(new Fish({pos: [x, y]}));
-	      this.fishCoor = [x,y]
-	    }
-	  }
-	};
-
-	FishHolder.prototype.draw = function (ctx) {
-	  if(this.game.inGame === false) {
-	    this.fishHolder = [];
-	  } else {
-	    if(this.eaten === false) {
-	      if(this.fishHolder.length === 0) {
-	        this.randomizeFish();
-	      } else {
-	        this.fishHolder[0].move();
-	        this.fishHolder[0].draw(ctx);
-	      }
-	    } else {
-	      ctx.font = "bold 25px Arial";
-	      ctx.fillStyle = "rgba(246, 36, 89, " + this.opacity + ")";
-	      ctx.fillText("+5", this.fishCoor[0], this.fishCoor[1]);
-	      this.opacity -= 0.030;
-
-	      if(this.opacity <= 0) {
-	        this.eaten = false;
-	        this.opacity = 1;
-	      }
-	    }
-	  }
-
-	};
-
-	FishHolder.prototype.collideWith = function (shark) {
-	  this.game.scoreboard.score += 5;
-	  this.fishHolder = [];
-	  this.eaten = true;
-	}
-
-	FishHolder.prototype.isCollidedWith = function (shark) {
-	  var collided = false;
-	  if(this.fishHolder.length != 0) {
-	    var objectXCoor = shark.pos[0];
-	    var objectYCoor = shark.pos[1];
-	    var hitBoxUpper = this.fishHolder[0].pos[1] - 30;
-	    var hitBoxLower = this.fishHolder[0].pos[1] + 30;
-	    var hitBoxRight = this.fishHolder[0].pos[0] + 40;
-	    var hitBoxLeft = this.fishHolder[0].pos[0] - 40;
-	    if(objectXCoor <= hitBoxRight && objectXCoor >= hitBoxLeft && objectYCoor >= hitBoxUpper && objectYCoor <= hitBoxLower) {
-	      // debugger
-	      collided = true
-	    }
-
-	  }
-	  return collided
-	}
-
-
-	module.exports = FishHolder;
-
-
-/***/ },
+/* 7 */,
 /* 8 */
 /***/ function(module, exports) {
 
@@ -828,6 +755,87 @@
 	};
 
 	module.exports = Fish;
+
+
+/***/ },
+/* 9 */
+/***/ function(module, exports, __webpack_require__) {
+
+	var Fish = __webpack_require__(8);
+
+	function BoostHolder (options) {
+	  this.game = options.game;
+	  this.fishHolder = [];
+	  this.sharkDirection = this.game.shark.direction;
+	  this.opacity = 1;
+	  this.eaten = false;
+	  this.fishCoor;
+	};
+
+	BoostHolder.prototype.randomizeFish = function () {
+	  if(this.fishHolder.length === 0 && this.sharkDirection != this.game.shark.direction) {
+	    this.sharkDirection = this.game.shark.direction;
+	    if(Math.ceil(Math.random()*4) === 4) { //1 in 4 chance steak will appear
+	      var x = Math.ceil(Math.random()*390) + 80;
+	      var y = Math.ceil(Math.random()*500) + 100;
+	      this.fishHolder.push(new Fish({pos: [x, y]}));
+	      this.fishCoor = [x,y]
+	    }
+	  }
+	};
+
+	BoostHolder.prototype.draw = function (ctx) {
+	  if(this.game.inGame === false) {
+	    this.fishHolder = [];
+	  } else {
+	    if(this.eaten === false) {
+	      if(this.fishHolder.length === 0) {
+	        this.randomizeFish();
+	      } else {
+	        this.fishHolder[0].move();
+	        this.fishHolder[0].draw(ctx);
+	      }
+	    } else {
+	      ctx.font = "bold 25px Arial";
+	      ctx.fillStyle = "rgba(246, 36, 89, " + this.opacity + ")";
+	      ctx.fillText("+5", this.fishCoor[0], this.fishCoor[1]);
+	      this.opacity -= 0.030;
+
+	      if(this.opacity <= 0) {
+	        this.eaten = false;
+	        this.opacity = 1;
+	      }
+	    }
+	  }
+
+	};
+
+	BoostHolder.prototype.collideWith = function (shark) {
+	  this.game.scoreboard.score += 5;
+	  this.fishHolder = [];
+	  this.eaten = true;
+	}
+
+	BoostHolder.prototype.isCollidedWith = function (shark) {
+	  var collided = false;
+	  if(this.fishHolder.length != 0) {
+	    var objectXCoor = shark.pos[0];
+	    var objectYCoor = shark.pos[1];
+	    var hitBoxUpper = this.fishHolder[0].pos[1] - 30;
+	    var hitBoxLower = this.fishHolder[0].pos[1] + 30;
+	    var hitBoxRight = this.fishHolder[0].pos[0] + 40;
+	    var hitBoxLeft = this.fishHolder[0].pos[0] - 40;
+	    if(objectXCoor <= hitBoxRight && objectXCoor >= hitBoxLeft && objectYCoor >= hitBoxUpper && objectYCoor <= hitBoxLower) {
+	      // debugger
+	      collided = true
+	    }
+
+	  }
+	  return collided
+	}
+
+
+	module.exports = BoostHolder;
 
 
 /***/ }
