@@ -99,10 +99,10 @@
 	  cancelAnimationFrame(0);
 
 	  if(this.storage.highScore === undefined) {
-	    this.storage.highScore.setItem("highScore", this.scoreboard.score)
+	    this.storage.setItem("highScore", this.scoreboard.score)
 	  } else {
 	    if(parseInt(this.storage.highScore) < this.scoreboard.score) {
-	      this.storage.highScore.setItem("highScore", this.scoreboard.score)
+	      this.storage.setItem("highScore", this.scoreboard.score)
 	    }
 	  }
 
