@@ -78,6 +78,7 @@
 	    this.inGame = false;
 	    this.util = new Util(this);
 	    this.util.addDocumentListeners();
+	    this.storage = localStorage;
 	    // this.highScore = parseInt(localStorage.highScore) || 0;
 	    // this.gamesPlayed = parseInt(localStorage.gamesPlayed) || 0;
 	};
@@ -97,11 +98,11 @@
 	Game.prototype.over = function () {
 	  cancelAnimationFrame(0);
 
-	  if(localStorage.highScore === undefined) {
-	    localStorage.highScore = this.scoreboard.score;
+	  if(this.storage.highScore === undefined) {
+	    this.storage.highScore.setItem("highScore", this.scoreboard.score)
 	  } else {
-	    if(parseInt(localStorage.highScore) < this.scoreboard.score) {
-	      localStorage.highScore = this.scoreboard.score;
+	    if(parseInt(this.storage.highScore) < this.scoreboard.score) {
+	      this.storage.highScore.setItem("highScore", this.scoreboard.score)
 	    }
 	  }
 
@@ -139,8 +140,8 @@
 
 	  this.ctx.fillText("SPACE", 300, 300);
 	  this.ctx.fillText("TO SWIM", 300, 325);
-	  this.ctx.fillText("BEST SCORE: " + localStorage.highScore, 300, 550);
-	  this.ctx.fillText("GAMES PLAYED: " + localStorage.gamesPlayed, 300, 600);
+	  this.ctx.fillText("BEST SCORE: " + this.storage.highScore, 300, 550);
+	  this.ctx.fillText("GAMES PLAYED: " + this.storage.gamesPlayed, 300, 600);
 
 	  if(!this.inGame) {
 	    requestAnimationFrame(this.floatShark.bind(this))
@@ -155,7 +156,7 @@
 	  this.shark.floatDirection = null;
 	  this.shark.vel = [5,-7];
 	  this.animate();
-	  localStorage.gamesPlayed === undefined ? localStorage.gamesPlayed = 1 : localStorage.gamesPlayed = parseInt(localStorage.gamesPlayed) + 1
+	  this.storage.gamesPlayed === undefined ? this.storage.setItem("gamesPlayed", 1) : this.storage.gamesPlayed.setItem("gamesPlayed", (parseInt(this.storage.gamesPlayed) + 1))
 	  // this.gamesPlayed += 1;
 	  // requestAnimationFrame(this.animate.bind(this));
 	  //UNCOMMENT THIS WHEN YOU"RE PLAY
