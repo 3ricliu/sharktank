@@ -150,7 +150,6 @@
 
 	Game.prototype.start = function () {
 	  // this.lastTime = 0;
-		debugger
 	  this.addSpikes();
 	  this.addFishHolder();
 	  this.util.addShark(this.shark);
@@ -793,7 +792,6 @@
 	    var hitBoxRight = this.fishHolder[0].pos[0] + 40;
 	    var hitBoxLeft = this.fishHolder[0].pos[0] - 40;
 	    if(objectXCoor <= hitBoxRight && objectXCoor >= hitBoxLeft && objectYCoor >= hitBoxUpper && objectYCoor <= hitBoxLower) {
-	      // debugger
 	      collided = true
 	    }
 
