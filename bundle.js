@@ -66,23 +66,23 @@
 	var Scoreboard = __webpack_require__(4);
 	var Shark = __webpack_require__(5);
 	var Util = __webpack_require__(6);
-	var BoostHolder = __webpack_require__(9);
+	var BoostHolder = __webpack_require__(7);
 
 
 	function Game (ctx) {
-	    this.ctx = ctx;
-	    this.spikes = [];
-	    this.shark;
-	    this.boostHolder;
-	    this.scoreboard;
-	    this.inGame = false;
-	    this.util = new Util(this);
-	    this.util.addDocumentListeners();
-	    this.highScore = parseInt(localStorage.highScore) || 0;
-	    this.gamesPlayed = parseInt(localStorage.gamesPlayed) || 0;
-	};
+	  this.ctx = ctx;
+	  this.spikes = [];
+	  this.shark;
+	  this.boostHolder;
+	  this.scoreboard;
+	  this.inGame = false;
+	  this.util = new Util(this);
+	  this.highScore = parseInt(localStorage.highScore) || 0;
+	  this.gamesPlayed = parseInt(localStorage.gamesPlayed) || 0;
 
-	Game.BG_COLOR = "#F2F1EF";
+	  this.util.addDocumentListeners();
+	}
+
 	Game.DIM_X = 550;
 	Game.DIM_Y = 700;
 
@@ -92,14 +92,14 @@
 	  this.addScoreboard();
 	  this.addBoostHolder();
 	  this.floatShark();
-	}
+	};
 
 	Game.prototype.over = function () {
 	  cancelAnimationFrame(0);
 
 	  if(this.highScore === undefined || this.scoreboard.score > this.highScore) {
-	    this.highScore = this.scoreboard.score
-	    localStorage.setItem("highScore", this.scoreboard.score)
+	    this.highScore = this.scoreboard.score;
+	    localStorage.setItem("highScore", this.scoreboard.score);
 	  }
 
 	  this.spikes = [];
@@ -107,7 +107,7 @@
 	  this.scoreboard = null;
 	  this.inGame = false;
 	  this.home();
-	}
+	};
 
 	Game.prototype.floatShark = function () {
 	  this.ctx.clearRect(0, 0, Game.DIM_X, Game.DIM_Y);
@@ -119,11 +119,11 @@
 
 	  this.ctx.fillStyle = "#6C7A89";
 	  this.ctx.font = "75px Verdana";
-	  this.ctx.textAlign = "center"
+	  this.ctx.textAlign = "center";
 	  this.ctx.fillText("SHARKTANK", 275, 150);
 
 	  this.ctx.font = "25px Verdana";
-	  this.ctx.textAlign = "center"
+	  this.ctx.textAlign = "center";
 	  this.ctx.fillStyle = "white";
 
 	  this.ctx.fillText("SPACE", 300, 300);
@@ -132,31 +132,28 @@
 	  this.ctx.fillText("GAMES PLAYED: " + this.gamesPlayed, 300, 600);
 
 	  if(!this.inGame) {
-	    requestAnimationFrame(this.floatShark.bind(this))
+	    requestAnimationFrame(this.floatShark.bind(this));
 	  }
-	}
+	};
 
 	Game.prototype.start = function () {
-	  // this.lastTime = 0;
 	  this.addSpikes();
 	  this.addBoostHolder();
 	  this.util.addShark(this.shark);
 	  this.shark.floatDirection = null;
 	  this.shark.vel = [5,-7];
 	  this.animate();
-	  // this.gamesPlayed += 1;
+
 
 	  if(this.gamesPlayed === undefined) {
-	    this.gamesPlayed = 1
-	    localStorage.setItem("gamesPlayed", 1)
+	    this.gamesPlayed = 1;
+	    localStorage.setItem("gamesPlayed", 1);
 	  } else {
-	    this.gamesPlayed += 1
-	    curr_games_played = parseInt(localStorage.gamesPlayed) + 1
-	    localStorage.setItem("gamesPlayed", curr_games_played)
+	    this.gamesPlayed += 1;
+	    var currGamesPlayed = parseInt(localStorage.gamesPlayed) + 1;
+	    localStorage.setItem("gamesPlayed", currGamesPlayed);
 	  }
-	  // requestAnimationFrame(this.animate.bind(this));
-	  //UNCOMMENT THIS WHEN YOU"RE PLAY
-	}
+	};
 
 	Game.prototype.animate = function () {
 	  this.step();
@@ -165,15 +162,15 @@
 	  if(this.inGame) {
 	    requestAnimationFrame(this.animate.bind(this));
 	  }
-	}
+	};
 
 	Game.prototype.addTopBottomSpikes = function () {
-	  this.spikes.push(new TopBottomSpikes({game: this, position: "top"}))
-	  this.spikes.push(new TopBottomSpikes({game: this, position: "bottom"}))
+	  this.spikes.push(new TopBottomSpikes({game: this, position: "top"}));
+	  this.spikes.push(new TopBottomSpikes({game: this, position: "bottom"}));
 	};
 
 	Game.prototype.addSpikes = function () {
-	  this.spikes.push(new SideSpikes({game: this}))
+	  this.spikes.push(new SideSpikes({game: this}));
 	};
 
 	Game.prototype.addBoostHolder = function () {
@@ -197,7 +194,7 @@
 	  });
 
 	  this.scoreboard = scoreboard;
-	}
+	};
 
 	Game.prototype.allObjects = function () {
 	  return [].concat(this.scoreboard, this.spikes, this.shark, this.boostHolder);
@@ -210,7 +207,7 @@
 
 	  this.allObjects().forEach(function (object) {
 	    object.draw(ctx);
-	  }.bind(this));
+	  });
 	};
 
 	Game.prototype.step = function () {
@@ -230,7 +227,7 @@
 	  }.bind(this));
 
 	  if(this.boostHolder.isCollidedWith(this.shark)) {
-	    this.boostHolder.collideWith(this.shark);
+	    this.boostHolder.collideWith();
 	  }
 	};
 
@@ -250,15 +247,14 @@
 	  this.position;
 	  this.spikeSet;
 	  this.setCurrDirection();
-	};
+	}
 
 	SideSpikes.prototype.draw = function (ctx) {
 	  if(this.game.direction !== this.position) {
 	    this.setCurrDirection();
 	  }
-
-	  var xStart = this.spikeSet[0]
-	  var xMid = this.spikeSet[1]
+	  var xStart = this.spikeSet[0];
+	  var xMid = this.spikeSet[1];
 
 	  ctx.fillStyle = this.color;
 
@@ -274,19 +270,19 @@
 
 	SideSpikes.prototype.setCurrDirection = function () {
 	  this.position = this.game.direction;
-	  this.chooseSpikes(this.position)
+	  this.chooseSpikes(this.position);
 	};
 
 	SideSpikes.prototype.chooseSpikes = function (direction) {
 	  var numSpikes = Math.ceil(Math.random()*4) + Math.floor(this.game.scoreboard.score/12);
 	  if(numSpikes > 9) {
-	    numSpikes = 8
+	    numSpikes = 8;
 	  }
 
-	  var spikeArray = []
+	  var spikeArray = [];
 
 	  while(spikeArray.length < numSpikes) {
-	      spikeIdx = Math.floor(Math.random()*10);
+	      var spikeIdx = Math.floor(Math.random()*10);
 	      if(spikeArray.indexOf(spikeIdx) === -1) {
 	        spikeArray.push(spikeIdx);
 	      }
@@ -315,11 +311,11 @@
 	    if(objectYCoor > hitBoxLower && objectYCoor < hitBoxUpper) {
 	      if((this.position === "left" && objectXCoor < 30) ||
 	          this.position === "right" && objectXCoor > 520) {
-	        collided = true
+	        collided = true;
 	      }
 	    }
-	  };
-	  return collided
+	  }
+	  return collided;
 	};
 
 	SideSpikes.prototype.collideWith = function (shark) {
@@ -343,8 +339,7 @@
 	  this.y;
 	  this.spikeIncrementer;
 	  this.rectangle;
-
-	};
+	}
 
 	TopBottomSpikes.prototype.calculateXAndY = function () {
 	  if (this.position === "top") {
@@ -367,7 +362,7 @@
 	  this.calculateXAndY();
 
 	  ctx.beginPath();
-	  ctx.rect(this.x, this.rectangle, this.width, 25)
+	  ctx.rect(this.x, this.rectangle, this.width, 25);
 	  ctx.fill();
 
 	  ctx.beginPath();
@@ -375,9 +370,9 @@
 	  while(this.x < this.width) {
 	    this.x += 17;
 	    ctx.lineTo(this.x, this.spikeIncrementer);
-	    this.x += 30
-	    ctx.lineTo(this.x, this.y)
-	    this.x += 30
+	    this.x += 30;
+	    ctx.lineTo(this.x, this.y);
+	    this.x += 30;
 	    ctx.lineTo(this.x, this.spikeIncrementer);
 	    ctx.fill();
 	  }
@@ -391,7 +386,7 @@
 	  } else if (this.position == "bottom") {
 	    return otherObject.pos[1] > this.y - 19;
 	  }
-	}
+	};
 
 	TopBottomSpikes.prototype.collideWith = function (shark) {
 	  shark.spaz();
@@ -412,7 +407,7 @@
 	  this.score = 0;
 	  this.sharkDirection = "right";
 	  this.pos = [300, 350];
-	};
+	}
 
 	Scoreboard.prototype.draw = function (ctx) {
 	  this.checkScore();
@@ -422,15 +417,19 @@
 	  ctx.beginPath();
 	  ctx.arc(
 	    this.pos[0], this.pos[1], 150, 0, 2 * Math.PI, true
-	  )
+	  );
 	  ctx.fill();
 
 	  if(this.game.inGame) {
-	    ctx.fillStyle = "white"
+	    ctx.fillStyle = "white";
 	    ctx.font = "bold 150px Arial";
-	    ctx.textAlign = "center"
+	    ctx.textAlign = "center";
 	    ctx.fillText(this.score, 300, 400);
 	  }
+	};
+
+	Scoreboard.prototype.eatSteak = function () {
+	  this.score += 5;
 	};
 
 	Scoreboard.prototype.checkScore = function () {
@@ -451,8 +450,8 @@
 
 	function Shark (options) {
 	  this.radius = Shark.RADIUS;
-	  this.vel = [0, 1]
-	  this.color = "#F62459";
+	  this.vel = [0, 1];
+	  this.chosenColor = 0;
 	  this.pos = [315, 350];
 	  this.game = options.game;
 	  this.game_width = options.canvas_width;
@@ -460,11 +459,26 @@
 	  this.direction = "right";
 	  this.spazzed = false;
 	  this.opacity = 1;
+	  this.triggered = false;
+	  this.invincible = false;
 	  this.floatDirection = "down";
-	};
+	}
+
+	Shark.COLORS = ["#F62459",
+	                "#FECE7A",
+	                "#7EFF7A",
+	                "#7EFFFF",
+	                "#7BA3FE",
+	                "#CB70FE",
+	                "#FC49F5",
+	                "#FC4EA7",
+	                "#FD5258"];
 
 	Shark.prototype.draw = function (ctx) {
-	  ctx.fillStyle = this.color;
+	  if(this.triggered) {
+	    this.chosenColor = (this.chosenColor + 1) % Shark.COLORS.length;
+	  }
+	  ctx.fillStyle = Shark.COLORS[this.chosenColor];
 
 	  if(this.spazzed) {
 	    ctx.fillStyle = "rgba(41, 128, 185, " + this.opacity + ")";
@@ -472,11 +486,11 @@
 
 	    if(this.opacity <= 0) {
 	      this.game.over();
-	      this.pos = [1000, 1000]; //bandaid
+	      this.pos = [1000, 1000]; // to do: fix bandaid
 	    }
 	  }
 
-	  if(this.opacity != 0) {
+	  if(this.opacity !== 0) {
 	    ctx.beginPath();
 
 	    if(this.direction === "right") {
@@ -504,15 +518,13 @@
 	        [ -55, -10]
 	      ];
 
-
-
 	      //drawing the body
 	      ctx.lineTo(this.pos[0] - 25, this.pos[1]); // line to body
 	      ctx.lineTo(this.pos[0] - 25 - 10, this.pos[1] + 5); //line down
 	      ctx.lineTo(this.pos[0] - 25 - 10 - 20, this.pos[1] + 5 - 15); //line to fin
 	      ctx.lineTo(this.pos[0] - 25 - 10 - 20, this.pos[1] + 5 - 15 + 45); //line down fin
 	      ctx.lineTo(this.pos[0] - 25 - 10 - 20 + 20, this.pos[1] + 5 - 15 + 45 - 15); //line up fin
-	      ctx.lineTo(this.pos[0] - 25 - 10 - 20 + 20 + 10, this.pos[1] + 5 - 15 + 45 - 15 + 5)
+	      ctx.lineTo(this.pos[0] - 25 - 10 - 20 + 20 + 10, this.pos[1] + 5 - 15 + 45 - 15 + 5);
 	      ctx.lineTo(this.pos[0], this.pos[1] + 25);
 	      ctx.fill();
 	      ctx.stroke();
@@ -524,21 +536,20 @@
 	      ctx.moveTo(this.pos[0] - 10, this.pos[1] + 25);
 
 	      if(this.game.inGame) {
-	        this.vel[1] < 4 ? sharkArmY = 15 : sharkArmY = -15
+	        this.vel[1] < 4 ? sharkArmY = 15 : sharkArmY = -15;
 	        ctx.lineTo(this.pos[0] - 10 - 15, this.pos[1] + 25 + sharkArmY);
 	        ctx.lineTo(this.pos[0] - 10 - 15, this.pos[1] + 25);
 	        ctx.lineTo(this.pos[0] - 10, this.pos[1] + 25);
 	        ctx.fill();
 	        ctx.stroke();
 	      } else {
-	        this.vel[1] > 0.1 ? sharkArmY = -15 : sharkArmY = 15
+	        this.vel[1] > 0.1 ? sharkArmY = -15 : sharkArmY = 15;
 	        ctx.lineTo(this.pos[0] - 10 - 15, this.pos[1] + 25 + sharkArmY);
 	        ctx.lineTo(this.pos[0] - 10 - 15, this.pos[1] + 25);
 	        ctx.lineTo(this.pos[0] - 10, this.pos[1] + 25);
 	        ctx.fill();
 	        ctx.stroke();
 	      }
-
 
 	      //draw the eye
 	      if(!this.spazzed) {
@@ -576,7 +587,7 @@
 	      ctx.lineTo(this.pos[0] + 25 + 10 + 20, this.pos[1] + 5 - 15); //line to fin
 	      ctx.lineTo(this.pos[0] + 25 + 10 + 20, this.pos[1] + 5 - 15 + 45); //line down fin
 	      ctx.lineTo(this.pos[0] + 25 + 10 + 20 - 20, this.pos[1] + 5 - 15 + 45 - 15); //line up fin
-	      ctx.lineTo(this.pos[0] + 25 + 10 + 20 - 20 - 10, this.pos[1] + 5 - 15 + 45 - 15 + 5)
+	      ctx.lineTo(this.pos[0] + 25 + 10 + 20 - 20 - 10, this.pos[1] + 5 - 15 + 45 - 15 + 5);
 	      ctx.lineTo(this.pos[0], this.pos[1] + 25);
 
 	      ctx.fill();
@@ -588,7 +599,7 @@
 
 	      ctx.moveTo(this.pos[0] + 10, this.pos[1] + 25);
 	      var sharkArmY;
-	      this.vel[1] < 4  ? sharkArmY = 15 : sharkArmY = -15
+	      this.vel[1] < 4  ? sharkArmY = 15 : sharkArmY = -15;
 	      ctx.lineTo(this.pos[0] + 10 + 15, this.pos[1] + 25 + sharkArmY);
 	      ctx.lineTo(this.pos[0] + 10 + 15, this.pos[1] + 25);
 	      ctx.lineTo(this.pos[0] + 10, this.pos[1] + 25);
@@ -609,11 +620,11 @@
 	};
 
 	Shark.prototype.move = function () {
-	  offsetX = this.vel[0];
-	  offsetY = this.vel[1];
+	  var offsetX = this.vel[0];
+	  var offsetY = this.vel[1];
 
-	  newX = this.pos[0] + offsetX;
-	  newY = this.pos[1] + offsetY;
+	  var newX = this.pos[0] + offsetX;
+	  var newY = this.pos[1] + offsetY;
 
 	  if(newX > this.game_width - 20 || newX < 0 + 20) {
 	    this.vel[0] = -this.vel[0];
@@ -625,36 +636,52 @@
 	      this.direction = "left";
 	      this.game.direction = "left";
 	    }
-	  };
+	  }
 
 	  if(newY > this.game_height - 60 || newY < 0 + 60 ) {
-	    this.vel[1] = -this.vel[1]
-	  };
+	    this.vel[1] = -this.vel[1];
+	  }
 
 	  this.pos = [newX, newY];
+	  // this.calculateX();
 	  this.calculateY();
 	};
 
 	Shark.prototype.float = function () {
-	  if(this.floatDirection == "down" && this.vel[1] < 1.3) {
-	    this.vel[1] += 0.01
+	  if(this.floatDirection === "down" && this.vel[1] < 1.3) {
+	    this.vel[1] += 0.01;
 	  } else if (this.floatDirection === "down" && this.vel[1] > 1.3) {
-	    this.floatDirection = "up"
-	    this.vel[1] = -1
+	    this.floatDirection = "up";
+	    this.vel[1] = -1;
 	  } else if (this.floatDirection === "up" && this.vel[1] > -1.3) {
-	    this.vel[1] -= 0.01
+	    this.vel[1] -= 0.01;
 	  } else if (this.floatDirection === "up" && this.vel[1] < -1.3) {
 	    this.floatDirection = "down";
-	    this.vel[1] = 1
+	    this.vel[1] = 1;
 	  }
-	  newX = this.pos[0] + this.vel[0];
-	  newY = this.pos[1] + this.vel[1];
+	  var newX = this.pos[0] + this.vel[0];
+	  var newY = this.pos[1] + this.vel[1];
 	  this.pos = [newX, newY];
 	};
 
+	Shark.prototype.starPower = function () {
+	  this.triggered = true;
+	  this.invincible = true;
+	  setTimeout(function () {
+	    this.triggered = false;
+	    this.invincible = false;
+	  }.bind(this), 3200);
+	};
+
+	// Shark.prototype.calculateX = function () {
+	//   if(this.vel[0] > 5) {
+	//     this.vel[0] -= 0.25;
+	//   }
+	// };
+
 	Shark.prototype.calculateY = function () {
 	  if(this.vel[1] < 7) {
-	    this.vel[1] += 0.5
+	    this.vel[1] += 0.5;
 	  }
 	};
 
@@ -663,12 +690,17 @@
 	};
 
 	Shark.prototype.spaz = function () {
-	  if(this.direction === "right"){
-	      this.pos[1] > 640 ? this.vel = [-8,-12] : this.vel = [8, -12]
+	  if(this.invincible){
+	    console.log("::PartyShark::");
 	  } else {
-	    this.pos[1] > 620 ? this.vel = [8,-12] : this.vel = [-8, 12]
+	    if(this.direction === "right"){
+	      this.pos[1] > 640 ? this.vel = [8,-12] : this.vel = [8, -12];
+	    } else {
+	      this.pos[1] > 620 ? this.vel = [-8,-12] : this.vel = [-8, 12];
+	    }
+	    this.spazzed = true;
 	  }
-	  this.spazzed = true;
+
 	};
 
 	module.exports = Shark;
@@ -681,7 +713,7 @@
 	function Util (game) {
 	  this.shark;
 	  this.game = game;
-	};
+	}
 
 	Util.prototype.addDocumentListeners = function () {
 	  document.addEventListener('keydown', this.keyPressed.bind(this));
@@ -706,6 +738,12 @@
 	  }
 	};
 
+	// Util.prototype.inherits = function (childClass, baseClass) {
+	//   function Surrogate () { this.constructor = childClass; }
+	//   Surrogate.prototype = baseClass.prototype;
+	//   childClass.prototype = new Surrogate();
+	// };
+
 	Util.prototype.mouseClicked = function (event) {
 	  event.preventDefault();
 	  if(this.game.inGame === false) {
@@ -720,122 +758,211 @@
 
 
 /***/ },
-/* 7 */,
-/* 8 */
-/***/ function(module, exports) {
-
-	function Fish (options) {
-	  this.pos = options.pos;
-	  this.vel = [0, 1]
-	  this.direction = "down";
-	  this.img = new Image();
-	  this.img.src = 'assets/steak.png';
-	};
-
-	Fish.prototype.draw = function (ctx) {
-	  ctx.drawImage(this.img, this.pos[0], this.pos[1])
-	};
-
-	Fish.prototype.move = function () {
-	  if(this.direction == "down" && this.vel[1] < 1.3) {
-	    this.vel[1] += 0.01
-	  } else if (this.direction === "down" && this.vel[1] > 1.3) {
-	    this.direction = "up"
-	    this.vel[1] = -1
-	  } else if (this.direction === "up" && this.vel[1] > -1.3) {
-	    this.vel[1] -= 0.01
-	  } else if (this.direction === "up" && this.vel[1] < -1.3) {
-	    this.direction = "down";
-	    this.vel[1] = 1
-	  }
-
-	  newX = this.pos[0] + this.vel[0];
-	  newY = this.pos[1] + this.vel[1];
-	  this.pos = [newX, newY];
-	};
-
-	module.exports = Fish;
-
-
-/***/ },
-/* 9 */
+/* 7 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var Fish = __webpack_require__(8);
+	var Steak = __webpack_require__(8);
+	var Star = __webpack_require__(9);
 
 	function BoostHolder (options) {
 	  this.game = options.game;
-	  this.fishHolder = [];
+	  this.boostHolder = [];
 	  this.sharkDirection = this.game.shark.direction;
-	  this.opacity = 1;
-	  this.eaten = false;
-	  this.fishCoor;
-	};
+	  this.existBoost = false;
+	  this.boostCoor = [0, 0];
+	}
 
-	BoostHolder.prototype.randomizeFish = function () {
-	  if(this.fishHolder.length === 0 && this.sharkDirection != this.game.shark.direction) {
+	BoostHolder.prototype.randomizeBoost = function () {
+	  if(this.boostHolder.length === 0 && this.sharkDirection !== this.game.shark.direction) {
 	    this.sharkDirection = this.game.shark.direction;
-	    if(Math.ceil(Math.random()*4) === 4) { //1 in 4 chance steak will appear
+	    if(Math.ceil(Math.random()*3) === 3) { //1 in 3 chance a boost will appear
 	      var x = Math.ceil(Math.random()*390) + 80;
 	      var y = Math.ceil(Math.random()*500) + 100;
-	      this.fishHolder.push(new Fish({pos: [x, y]}));
-	      this.fishCoor = [x,y]
+	      var item = Math.ceil(Math.random()*2);
+	      switch(item) {
+	        case 1:
+	          this.boostHolder.push(new Steak({pos: [x, y], holder: this}));
+	          break;
+	        case 2:
+	          this.boostHolder.push(new Star({pos: [x, y], holder: this}));
+	          break;
+	      }
+	      this.boostCoor = [x, y];
+	      this.existBoost = true;
 	    }
 	  }
 	};
 
 	BoostHolder.prototype.draw = function (ctx) {
 	  if(this.game.inGame === false) {
-	    this.fishHolder = [];
-	  } else {
-	    if(this.eaten === false) {
-	      if(this.fishHolder.length === 0) {
-	        this.randomizeFish();
-	      } else {
-	        this.fishHolder[0].move();
-	        this.fishHolder[0].draw(ctx);
-	      }
-	    } else {
-	      ctx.font = "bold 25px Arial";
-	      ctx.fillStyle = "rgba(246, 36, 89, " + this.opacity + ")";
-	      ctx.fillText("+5", this.fishCoor[0], this.fishCoor[1]);
-	      this.opacity -= 0.030;
-
-	      if(this.opacity <= 0) {
-	        this.eaten = false;
-	        this.opacity = 1;
-	      }
-	    }
+	    this.boostHolder = [];
 	  }
 
+	  if(this.boostHolder.length !== 0) {
+	    if(this.existBoost === false) {
+	      this.boostHolder[0].emitPower(ctx);
+	    } else {
+	      this.boostHolder[0].float();
+	      this.boostHolder[0].draw(ctx);
+	    }
+	  } else {
+	    this.randomizeBoost();
+	  }
 	};
 
-	BoostHolder.prototype.collideWith = function (shark) {
-	  this.game.scoreboard.score += 5;
-	  this.fishHolder = [];
-	  this.eaten = true;
-	}
+	BoostHolder.prototype.reset = function () {
+	  this.boostHolder = [];
+	};
+
+	BoostHolder.prototype.collideWith = function () {
+	  var boost = this.boostHolder[0].constructor.name;
+	  switch(boost) {
+	    case "Steak":
+	      this.game.scoreboard.eatSteak();
+	      this.existBoost = false;
+	      break;
+	    case "Star":
+	      this.game.shark.starPower();
+	      this.existBoost = false;
+	      break;
+	  }
+	};
 
 	BoostHolder.prototype.isCollidedWith = function (shark) {
+	  if(this.existBoost === false) {
+	    return false;
+	  }
+
 	  var collided = false;
-	  if(this.fishHolder.length != 0) {
+	  if(this.boostHolder.length !== 0) {
 	    var objectXCoor = shark.pos[0];
 	    var objectYCoor = shark.pos[1];
-	    var hitBoxUpper = this.fishHolder[0].pos[1] - 30;
-	    var hitBoxLower = this.fishHolder[0].pos[1] + 30;
-	    var hitBoxRight = this.fishHolder[0].pos[0] + 40;
-	    var hitBoxLeft = this.fishHolder[0].pos[0] - 40;
+	    var hitBoxUpper = this.boostHolder[0].pos[1] - 30;
+	    var hitBoxLower = this.boostHolder[0].pos[1] + 30;
+	    var hitBoxRight = this.boostHolder[0].pos[0] + 40;
+	    var hitBoxLeft = this.boostHolder[0].pos[0] - 40;
 	    if(objectXCoor <= hitBoxRight && objectXCoor >= hitBoxLeft && objectYCoor >= hitBoxUpper && objectYCoor <= hitBoxLower) {
-	      // debugger
-	      collided = true
+	      collided = true;
 	    }
 
 	  }
-	  return collided
-	}
+	  return collided;
+	};
 
 
 	module.exports = BoostHolder;
+
+
+/***/ },
+/* 8 */
+/***/ function(module, exports) {
+
+	function Steak (options) {
+	  this.pos = options.pos;
+	  this.holder = options.holder;
+	  this.vel = [0, 1];
+	  this.direction = "down";
+	  this.img = new Image();
+	  this.img.src = 'assets/steak.png';
+	  this.opacity = 1;
+	  // this.emittingPower = false;
+	}
+
+	Steak.prototype.draw = function (ctx) {
+	  ctx.drawImage(this.img, this.pos[0], this.pos[1]);
+	};
+
+	Steak.prototype.float = function () {
+	  if(this.direction === "down" && this.vel[1] < 1.3) {
+	    this.vel[1] += 0.01;
+	  } else if (this.direction === "down" && this.vel[1] > 1.3) {
+	    this.direction = "up";
+	    this.vel[1] = -1;
+	  } else if (this.direction === "up" && this.vel[1] > -1.3) {
+	    this.vel[1] -= 0.01;
+	  } else if (this.direction === "up" && this.vel[1] < -1.3) {
+	    this.direction = "down";
+	    this.vel[1] = 1;
+	  }
+
+	  var newX = this.pos[0] + this.vel[0];
+	  var newY = this.pos[1] + this.vel[1];
+	  this.pos = [newX, newY];
+	};
+
+	Steak.prototype.emitPower = function (ctx) {
+	  // this.emittingPower = true;
+	  ctx.font = "bold 25px Arial";
+	  ctx.fillStyle = "rgba(52, 152, 219, " + this.opacity + ")";
+	  ctx.fillText("+5", this.pos[0], this.pos[1]);
+	  this.opacity -= 0.03;
+
+	  if(this.opacity <= 0) {
+	    // this.emittingPower = false;
+	    this.opacity = 1;
+	    this.holder.reset();
+	  }
+	};
+
+	module.exports = Steak;
+
+
+/***/ },
+/* 9 */
+/***/ function(module, exports) {
+
+	// var Util = require("./util.js");
+	// var BoostObject = require("./boostObject.js");
+
+	function Star (options) {
+	  this.pos = options.pos;
+	  this.holder = options.holder;
+	  this.vel = [0,1];
+	  this.direction = "down";
+	  this.img = new Image();
+	  this.img.src = 'assets/star.png';
+	  this.opacity = 1;
+
+	  // BoostObject.call(this, options );
+	}
+
+	Star.prototype.draw = function (ctx) {
+	  ctx.drawImage(this.img, this.pos[0], this.pos[1]);
+	};
+
+	Star.prototype.float = function () {
+	  if(this.direction === "down" && this.vel[1] < 1.3) {
+	    this.vel[1] += 0.01;
+	  } else if (this.direction === "down" && this.vel[1] > 1.3) {
+	    this.direction = "up";
+	    this.vel[1] = -1;
+	  } else if (this.direction === "up" && this.vel[1] > -1.3) {
+	    this.vel[1] -= 0.01;
+	  } else if (this.direction === "up" && this.vel[1] < -1.3) {
+	    this.direction = "down";
+	    this.vel[1] = 1;
+	  }
+
+	  var newX = this.pos[0] + this.vel[0];
+	  var newY = this.pos[1] + this.vel[1];
+	  this.pos = [newX, newY];
+	};
+
+	Star.prototype.emitPower = function (ctx) {
+	  ctx.font = "bold 25px Arial";
+	  ctx.fillStyle = "rgba(52, 152, 219, " + this.opacity + ")";
+	  ctx.fillText("INVINCIBILITY", this.pos[0], this.pos[1]);
+	  this.opacity -= 0.01;
+
+	  if(this.opacity <= 0) {
+	    this.opacity = 1;
+	    this.holder.reset();
+	  }
+	};
+
+	// Util.prototype.inherits(Star, BoostObject);
+
+	module.exports = Star;
 
 
 /***/ }
