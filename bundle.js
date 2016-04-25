@@ -738,6 +738,12 @@
 	  }
 	};
 
+	// Util.prototype.inherits = function (childClass, baseClass) {
+	//   function Surrogate () { this.constructor = childClass; }
+	//   Surrogate.prototype = baseClass.prototype;
+	//   childClass.prototype = new Surrogate();
+	// };
+
 	Util.prototype.mouseClicked = function (event) {
 	  event.preventDefault();
 	  if(this.game.inGame === false) {
@@ -905,6 +911,9 @@
 /* 9 */
 /***/ function(module, exports) {
 
+	// var Util = require("./util.js");
+	// var BoostObject = require("./boostObject.js");
+
 	function Star (options) {
 	  this.pos = options.pos;
 	  this.holder = options.holder;
@@ -913,6 +922,8 @@
 	  this.img = new Image();
 	  this.img.src = 'assets/star.png';
 	  this.opacity = 1;
+
+	  // BoostObject.call(this, options );
 	}
 
 	Star.prototype.draw = function (ctx) {
@@ -938,19 +949,18 @@
 	};
 
 	Star.prototype.emitPower = function (ctx) {
-	  // this.emittingPower = true;
 	  ctx.font = "bold 25px Arial";
 	  ctx.fillStyle = "rgba(52, 152, 219, " + this.opacity + ")";
 	  ctx.fillText("INVINCIBILITY", this.pos[0], this.pos[1]);
 	  this.opacity -= 0.01;
 
 	  if(this.opacity <= 0) {
-	    // this.emittingPower = false;
 	    this.opacity = 1;
 	    this.holder.reset();
 	  }
 	};
 
+	// Util.prototype.inherits(Star, BoostObject);
 
 	module.exports = Star;
 
