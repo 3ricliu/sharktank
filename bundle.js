@@ -451,7 +451,7 @@
 	function Shark (options) {
 	  this.radius = Shark.RADIUS;
 	  this.vel = [0, 1];
-	  this.color = "#F62459";
+	  this.chosenColor = 0;
 	  this.pos = [315, 350];
 	  this.game = options.game;
 	  this.game_width = options.canvas_width;
@@ -459,11 +459,26 @@
 	  this.direction = "right";
 	  this.spazzed = false;
 	  this.opacity = 1;
+	  this.triggered = false;
+	  this.invincible = false;
 	  this.floatDirection = "down";
 	}
 
+	Shark.COLORS = ["#F62459",
+	                "#FECE7A",
+	                "#7EFF7A",
+	                "#7EFFFF",
+	                "#7BA3FE",
+	                "#CB70FE",
+	                "#FC49F5",
+	                "#FC4EA7",
+	                "#FD5258"];
+
 	Shark.prototype.draw = function (ctx) {
-	  ctx.fillStyle = this.color;
+	  if(this.triggered) {
+	    this.chosenColor = (this.chosenColor + 1) % Shark.COLORS.length;
+	  }
+	  ctx.fillStyle = Shark.COLORS[this.chosenColor];
 
 	  if(this.spazzed) {
 	    ctx.fillStyle = "rgba(41, 128, 185, " + this.opacity + ")";
@@ -628,6 +643,7 @@
 	  }
 
 	  this.pos = [newX, newY];
+	  // this.calculateX();
 	  this.calculateY();
 	};
 
@@ -648,6 +664,21 @@
 	  this.pos = [newX, newY];
 	};
 
+	Shark.prototype.starPower = function () {
+	  this.triggered = true;
+	  this.invincible = true;
+	  setTimeout(function () {
+	    this.triggered = false;
+	    this.invincible = false;
+	  }.bind(this), 3200);
+	};
+
+	// Shark.prototype.calculateX = function () {
+	//   if(this.vel[0] > 5) {
+	//     this.vel[0] -= 0.25;
+	//   }
+	// };
+
 	Shark.prototype.calculateY = function () {
 	  if(this.vel[1] < 7) {
 	    this.vel[1] += 0.5;
@@ -659,12 +690,17 @@
 	};
 
 	Shark.prototype.spaz = function () {
-	  if(this.direction === "right"){
-	      this.pos[1] > 640 ? this.vel = [-8,-12] : this.vel = [8, -12];
+	  if(this.invincible){
+	    console.log("::PartyShark::");
 	  } else {
-	    this.pos[1] > 620 ? this.vel = [8,-12] : this.vel = [-8, 12];
+	    if(this.direction === "right"){
+	      this.pos[1] > 640 ? this.vel = [8,-12] : this.vel = [8, -12];
+	    } else {
+	      this.pos[1] > 620 ? this.vel = [-8,-12] : this.vel = [-8, 12];
+	    }
+	    this.spazzed = true;
 	  }
-	  this.spazzed = true;
+
 	};
 
 	module.exports = Shark;
@@ -719,8 +755,8 @@
 /* 7 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var Steak = __webpack_require__(9);
-	var Star = __webpack_require__(10);
+	var Steak = __webpack_require__(8);
+	var Star = __webpack_require__(9);
 
 	function BoostHolder (options) {
 	  this.game = options.game;
@@ -733,10 +769,18 @@
 	BoostHolder.prototype.randomizeBoost = function () {
 	  if(this.boostHolder.length === 0 && this.sharkDirection !== this.game.shark.direction) {
 	    this.sharkDirection = this.game.shark.direction;
-	    if(Math.ceil(Math.random()*4) === 4) { //1 in 4 chance steak will appear
+	    if(Math.ceil(Math.random()*3) === 3) { //1 in 3 chance a boost will appear
 	      var x = Math.ceil(Math.random()*390) + 80;
 	      var y = Math.ceil(Math.random()*500) + 100;
-	      this.boostHolder.push(new Steak({pos: [x, y], holder: this}));
+	      var item = Math.ceil(Math.random()*2);
+	      switch(item) {
+	        case 1:
+	          this.boostHolder.push(new Steak({pos: [x, y], holder: this}));
+	          break;
+	        case 2:
+	          this.boostHolder.push(new Star({pos: [x, y], holder: this}));
+	          break;
+	      }
 	      this.boostCoor = [x, y];
 	      this.existBoost = true;
 	    }
@@ -747,6 +791,7 @@
 	  if(this.game.inGame === false) {
 	    this.boostHolder = [];
 	  }
+
 	  if(this.boostHolder.length !== 0) {
 	    if(this.existBoost === false) {
 	      this.boostHolder[0].emitPower(ctx);
@@ -765,10 +810,15 @@
 
 	BoostHolder.prototype.collideWith = function () {
 	  var boost = this.boostHolder[0].constructor.name;
-	  switch(boost){
+	  switch(boost) {
 	    case "Steak":
 	      this.game.scoreboard.eatSteak();
 	      this.existBoost = false;
+	      break;
+	    case "Star":
+	      this.game.shark.starPower();
+	      this.existBoost = false;
+	      break;
 	  }
 	};
 
@@ -798,8 +848,7 @@
 
 
 /***/ },
-/* 8 */,
-/* 9 */
+/* 8 */
 /***/ function(module, exports) {
 
 	function Steak (options) {
@@ -807,11 +856,10 @@
 	  this.holder = options.holder;
 	  this.vel = [0, 1];
 	  this.direction = "down";
-	  this.opacity = 1;
 	  this.img = new Image();
 	  this.img.src = 'assets/steak.png';
 	  this.opacity = 1;
-	  this.emittingPower = false;
+	  // this.emittingPower = false;
 	}
 
 	Steak.prototype.draw = function (ctx) {
@@ -837,14 +885,14 @@
 	};
 
 	Steak.prototype.emitPower = function (ctx) {
-	  this.emittingPower = true;
+	  // this.emittingPower = true;
 	  ctx.font = "bold 25px Arial";
-	  ctx.fillStyle = "rgba(38, 194, 129, " + this.opacity + ")";
+	  ctx.fillStyle = "rgba(52, 152, 219, " + this.opacity + ")";
 	  ctx.fillText("+5", this.pos[0], this.pos[1]);
-	  this.opacity -= 0.030;
+	  this.opacity -= 0.03;
 
 	  if(this.opacity <= 0) {
-	    this.emittingPower = false;
+	    // this.emittingPower = false;
 	    this.opacity = 1;
 	    this.holder.reset();
 	  }
@@ -854,12 +902,55 @@
 
 
 /***/ },
-/* 10 */
+/* 9 */
 /***/ function(module, exports) {
 
 	function Star (options) {
-
+	  this.pos = options.pos;
+	  this.holder = options.holder;
+	  this.vel = [0,1];
+	  this.direction = "down";
+	  this.img = new Image();
+	  this.img.src = 'assets/star.png';
+	  this.opacity = 1;
 	}
+
+	Star.prototype.draw = function (ctx) {
+	  ctx.drawImage(this.img, this.pos[0], this.pos[1]);
+	};
+
+	Star.prototype.float = function () {
+	  if(this.direction === "down" && this.vel[1] < 1.3) {
+	    this.vel[1] += 0.01;
+	  } else if (this.direction === "down" && this.vel[1] > 1.3) {
+	    this.direction = "up";
+	    this.vel[1] = -1;
+	  } else if (this.direction === "up" && this.vel[1] > -1.3) {
+	    this.vel[1] -= 0.01;
+	  } else if (this.direction === "up" && this.vel[1] < -1.3) {
+	    this.direction = "down";
+	    this.vel[1] = 1;
+	  }
+
+	  var newX = this.pos[0] + this.vel[0];
+	  var newY = this.pos[1] + this.vel[1];
+	  this.pos = [newX, newY];
+	};
+
+	Star.prototype.emitPower = function (ctx) {
+	  // this.emittingPower = true;
+	  ctx.font = "bold 25px Arial";
+	  ctx.fillStyle = "rgba(52, 152, 219, " + this.opacity + ")";
+	  ctx.fillText("INVINCIBILITY", this.pos[0], this.pos[1]);
+	  this.opacity -= 0.01;
+
+	  if(this.opacity <= 0) {
+	    // this.emittingPower = false;
+	    this.opacity = 1;
+	    this.holder.reset();
+	  }
+	};
+
 
 	module.exports = Star;
 
