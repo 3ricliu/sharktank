@@ -1,3 +1,15 @@
+# Sharktank
+
+## Summary
+
+[Sharktank][sharktank] is an in-browser game utilizing Javascript, Canvas, and CSS.
+
+## Structure
+
+
+## Overall Structure
+
+
 <!-- Repo
 
 README TODO
