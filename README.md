@@ -29,6 +29,8 @@ Game keeps track of all objects:
 * Scoreboard
 * Boosts
 
+Boosts inherits from BoostObject class with prototypical inheritance.
+
 Boost Holder randomizes when and which boosts (*currently only star and steak*) appear to the user.
 
 Side Spikes increase in proportion to player's score.
