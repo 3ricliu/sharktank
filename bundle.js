@@ -45,11 +45,11 @@
 /***/ function(module, exports, __webpack_require__) {
 
 	var Game = __webpack_require__(1);
-	var Util = __webpack_require__(6);
+	var Util = __webpack_require__(8);
 
 	var canvasEl = document.getElementsByTagName("canvas")[0];
-	canvasEl.width = Game.DIM_X;
-	canvasEl.height = Game.DIM_Y;
+	canvasEl.width = 550;
+	canvasEl.height = 700;
 
 	var ctx = canvasEl.getContext("2d");
 	var game = new Game(ctx);
@@ -65,8 +65,7 @@
 	var TopBottomSpikes = __webpack_require__(3);
 	var Scoreboard = __webpack_require__(4);
 	var Shark = __webpack_require__(5);
-	var Util = __webpack_require__(6);
-	var BoostHolder = __webpack_require__(7);
+	var BoostHolder = __webpack_require__(6);
 
 
 	function Game (ctx) {
@@ -76,15 +75,11 @@
 	  this.boostHolder;
 	  this.scoreboard;
 	  this.inGame = false;
-	  this.util = new Util(this);
 	  this.highScore = parseInt(localStorage.highScore) || 0;
 	  this.gamesPlayed = parseInt(localStorage.gamesPlayed) || 0;
 
-	  this.util.addDocumentListeners();
+	  this.bindKeys();
 	}
-
-	Game.DIM_X = 550;
-	Game.DIM_Y = 700;
 
 	Game.prototype.home = function () {
 	  this.addShark();
@@ -110,9 +105,9 @@
 	};
 
 	Game.prototype.floatShark = function () {
-	  this.ctx.clearRect(0, 0, Game.DIM_X, Game.DIM_Y);
+	  this.ctx.clearRect(0, 0, 550, 700);
 	  this.ctx.fillStyle = "rgba(242, 241, 239, .7)";
-	  this.ctx.fillRect(0, 0, Game.DIM_X, Game.DIM_Y);
+	  this.ctx.fillRect(0, 0, 550, 700);
 
 	  this.draw(this.ctx);
 	  this.shark.float();
@@ -126,7 +121,7 @@
 	  this.ctx.textAlign = "center";
 	  this.ctx.fillStyle = "white";
 
-	  this.ctx.fillText("SPACE", 300, 300);
+	  this.ctx.fillText("[SPACE]", 300, 300);
 	  this.ctx.fillText("TO SWIM", 300, 325);
 	  this.ctx.fillText("BEST SCORE: " + this.highScore, 300, 550);
 	  this.ctx.fillText("GAMES PLAYED: " + this.gamesPlayed, 300, 600);
@@ -139,7 +134,6 @@
 	Game.prototype.start = function () {
 	  this.addSpikes();
 	  this.addBoostHolder();
-	  this.util.addShark(this.shark);
 	  this.shark.floatDirection = null;
 	  this.shark.vel = [5,-7];
 	  this.animate();
@@ -180,8 +174,8 @@
 	Game.prototype.addShark = function () {
 	  var shark = new Shark({
 	    game: this,
-	    canvas_width: Game.DIM_X,
-	    canvas_height: Game.DIM_Y
+	    canvas_width: 550,
+	    canvas_height: 700
 	  });
 
 	  this.shark = shark;
@@ -200,10 +194,28 @@
 	  return [].concat(this.scoreboard, this.spikes, this.shark, this.boostHolder);
 	};
 
+	Game.prototype.bindKeys = function () {
+	  document.addEventListener('keydown', this.keyPressed.bind(this));
+	};
+
+	Game.prototype.keyPressed = function (event) {
+	  switch(event.keyCode) {
+	    case 32:
+	      event.preventDefault();
+	      if(this.inGame === false) {
+	        this.inGame = true;
+	        this.start();
+	      } else if (!this.shark.spazzed){
+	        this.shark.jump();
+	      }
+	      break;
+	  }
+	};
+
 	Game.prototype.draw = function (ctx) {
-	  ctx.clearRect(0, 0, Game.DIM_X, Game.DIM_Y);
+	  ctx.clearRect(0, 0, 550, 700);
 	  this.ctx.fillStyle = "rgba(242, 241, 239, .4)";
-	  ctx.fillRect(0, 0, Game.DIM_X, Game.DIM_Y);
+	  ctx.fillRect(0, 0, 550, 700);
 
 	  this.allObjects().forEach(function (object) {
 	    object.draw(ctx);
@@ -708,61 +720,10 @@
 
 /***/ },
 /* 6 */
-/***/ function(module, exports) {
-
-	function Util (game) {
-	  this.shark;
-	  this.game = game;
-	}
-
-	Util.prototype.addDocumentListeners = function () {
-	  document.addEventListener('keydown', this.keyPressed.bind(this));
-	  document.addEventListener('click', this.mouseClicked.bind(this));
-	};
-
-	Util.prototype.addShark = function (shark) {
-	  this.shark = shark;
-	};
-
-	Util.prototype.keyPressed = function (event) {
-	  switch(event.keyCode) {
-	    case 32:
-	      event.preventDefault();
-	      if(this.game.inGame === false) {
-	        this.game.inGame = true;
-	        this.game.start();
-	      } else if (!this.shark.spazzed){
-	        this.shark.jump();
-	      }
-	      break;
-	  }
-	};
-
-	// Util.prototype.inherits = function (childClass, baseClass) {
-	//   function Surrogate () { this.constructor = childClass; }
-	//   Surrogate.prototype = baseClass.prototype;
-	//   childClass.prototype = new Surrogate();
-	// };
-
-	Util.prototype.mouseClicked = function (event) {
-	  event.preventDefault();
-	  if(this.game.inGame === false) {
-	    this.game.inGame = true;
-	    this.game.start();
-	  } else if (!this.shark.spazzed){
-	    this.shark.jump();
-	  }
-	};
-
-	module.exports = Util;
-
-
-/***/ },
-/* 7 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var Steak = __webpack_require__(8);
-	var Star = __webpack_require__(9);
+	var Steak = __webpack_require__(11);
+	var Star = __webpack_require__(12);
 
 	function BoostHolder (options) {
 	  this.game = options.game;
@@ -854,8 +815,63 @@
 
 
 /***/ },
+/* 7 */,
 /* 8 */
 /***/ function(module, exports) {
+
+	var Util = {
+	  inherits: function (childClass, baseClass) {
+	    function Surrogate () { this.constructor = childClass; }
+	    Surrogate.prototype = baseClass.prototype;
+	    childClass.prototype = new Surrogate();
+	  }
+	};
+
+
+	module.exports = Util;
+
+
+/***/ },
+/* 9 */
+/***/ function(module, exports) {
+
+	function BoostObject () {
+	}
+
+	BoostObject.prototype.float = function () {
+	  // to impliment
+	  if(this.direction === "down" && this.vel[1] < 1.3) {
+	    this.vel[1] += 0.01;
+	  } else if (this.direction === "down" && this.vel[1] > 1.3) {
+	    this.direction = "up";
+	    this.vel[1] = -1;
+	  } else if (this.direction === "up" && this.vel[1] > -1.3) {
+	    this.vel[1] -= 0.01;
+	  } else if (this.direction === "up" && this.vel[1] < -1.3) {
+	    this.direction = "down";
+	    this.vel[1] = 1;
+	  }
+
+	  var newX = this.pos[0] + this.vel[0];
+	  var newY = this.pos[1] + this.vel[1];
+	  this.pos = [newX, newY];
+	};
+	BoostObject.prototype.draw = function (ctx) {
+	  // to impliment
+	  ctx.drawImage(this.img, this.pos[0], this.pos[1]);
+	};
+
+
+	module.exports = BoostObject;
+
+
+/***/ },
+/* 10 */,
+/* 11 */
+/***/ function(module, exports, __webpack_require__) {
+
+	var Util = __webpack_require__(8);
+	var BoostObject = __webpack_require__(9);
 
 	function Steak (options) {
 	  this.pos = options.pos;
@@ -865,88 +881,44 @@
 	  this.img = new Image();
 	  this.img.src = 'assets/steak.png';
 	  this.opacity = 1;
-	  // this.emittingPower = false;
 	}
 
-	Steak.prototype.draw = function (ctx) {
-	  ctx.drawImage(this.img, this.pos[0], this.pos[1]);
-	};
-
-	Steak.prototype.float = function () {
-	  if(this.direction === "down" && this.vel[1] < 1.3) {
-	    this.vel[1] += 0.01;
-	  } else if (this.direction === "down" && this.vel[1] > 1.3) {
-	    this.direction = "up";
-	    this.vel[1] = -1;
-	  } else if (this.direction === "up" && this.vel[1] > -1.3) {
-	    this.vel[1] -= 0.01;
-	  } else if (this.direction === "up" && this.vel[1] < -1.3) {
-	    this.direction = "down";
-	    this.vel[1] = 1;
-	  }
-
-	  var newX = this.pos[0] + this.vel[0];
-	  var newY = this.pos[1] + this.vel[1];
-	  this.pos = [newX, newY];
-	};
+	Util.inherits(Steak, BoostObject);
 
 	Steak.prototype.emitPower = function (ctx) {
-	  // this.emittingPower = true;
 	  ctx.font = "bold 25px Arial";
 	  ctx.fillStyle = "rgba(52, 152, 219, " + this.opacity + ")";
 	  ctx.fillText("+5", this.pos[0], this.pos[1]);
 	  this.opacity -= 0.03;
 
 	  if(this.opacity <= 0) {
-	    // this.emittingPower = false;
 	    this.opacity = 1;
 	    this.holder.reset();
 	  }
 	};
 
+
 	module.exports = Steak;
 
 
 /***/ },
-/* 9 */
-/***/ function(module, exports) {
+/* 12 */
+/***/ function(module, exports, __webpack_require__) {
 
-	// var Util = require("./util.js");
-	// var BoostObject = require("./boostObject.js");
+	var Util = __webpack_require__(8);
+	var BoostObject = __webpack_require__(9);
 
 	function Star (options) {
 	  this.pos = options.pos;
 	  this.holder = options.holder;
-	  this.vel = [0,1];
+	  this.vel = [0, 1];
 	  this.direction = "down";
 	  this.img = new Image();
 	  this.img.src = 'assets/star.png';
 	  this.opacity = 1;
-
-	  // BoostObject.call(this, options );
 	}
 
-	Star.prototype.draw = function (ctx) {
-	  ctx.drawImage(this.img, this.pos[0], this.pos[1]);
-	};
-
-	Star.prototype.float = function () {
-	  if(this.direction === "down" && this.vel[1] < 1.3) {
-	    this.vel[1] += 0.01;
-	  } else if (this.direction === "down" && this.vel[1] > 1.3) {
-	    this.direction = "up";
-	    this.vel[1] = -1;
-	  } else if (this.direction === "up" && this.vel[1] > -1.3) {
-	    this.vel[1] -= 0.01;
-	  } else if (this.direction === "up" && this.vel[1] < -1.3) {
-	    this.direction = "down";
-	    this.vel[1] = 1;
-	  }
-
-	  var newX = this.pos[0] + this.vel[0];
-	  var newY = this.pos[1] + this.vel[1];
-	  this.pos = [newX, newY];
-	};
+	Util.inherits(Star, BoostObject);
 
 	Star.prototype.emitPower = function (ctx) {
 	  ctx.font = "bold 25px Arial";
@@ -960,7 +932,6 @@
 	  }
 	};
 
-	// Util.prototype.inherits(Star, BoostObject);
 
 	module.exports = Star;
 
