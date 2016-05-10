@@ -722,8 +722,8 @@
 /* 6 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var Steak = __webpack_require__(11);
-	var Star = __webpack_require__(12);
+	var Steak = __webpack_require__(7);
+	var Star = __webpack_require__(10);
 
 	function BoostHolder (options) {
 	  this.game = options.game;
@@ -815,7 +815,41 @@
 
 
 /***/ },
-/* 7 */,
+/* 7 */
+/***/ function(module, exports, __webpack_require__) {
+
+	var Util = __webpack_require__(8);
+	var BoostObject = __webpack_require__(9);
+
+	function Steak (options) {
+	  this.pos = options.pos;
+	  this.holder = options.holder;
+	  this.vel = [0, 1];
+	  this.direction = "down";
+	  this.img = new Image();
+	  this.img.src = 'assets/steak.png';
+	  this.opacity = 1;
+	}
+
+	Util.inherits(Steak, BoostObject);
+
+	Steak.prototype.emitPower = function (ctx) {
+	  ctx.font = "bold 25px Arial";
+	  ctx.fillStyle = "rgba(52, 152, 219, " + this.opacity + ")";
+	  ctx.fillText("+5", this.pos[0], this.pos[1]);
+	  this.opacity -= 0.03;
+
+	  if(this.opacity <= 0) {
+	    this.opacity = 1;
+	    this.holder.reset();
+	  }
+	};
+
+
+	module.exports = Steak;
+
+
+/***/ },
 /* 8 */
 /***/ function(module, exports) {
 
@@ -866,43 +900,7 @@
 
 
 /***/ },
-/* 10 */,
-/* 11 */
-/***/ function(module, exports, __webpack_require__) {
-
-	var Util = __webpack_require__(8);
-	var BoostObject = __webpack_require__(9);
-
-	function Steak (options) {
-	  this.pos = options.pos;
-	  this.holder = options.holder;
-	  this.vel = [0, 1];
-	  this.direction = "down";
-	  this.img = new Image();
-	  this.img.src = 'assets/steak.png';
-	  this.opacity = 1;
-	}
-
-	Util.inherits(Steak, BoostObject);
-
-	Steak.prototype.emitPower = function (ctx) {
-	  ctx.font = "bold 25px Arial";
-	  ctx.fillStyle = "rgba(52, 152, 219, " + this.opacity + ")";
-	  ctx.fillText("+5", this.pos[0], this.pos[1]);
-	  this.opacity -= 0.03;
-
-	  if(this.opacity <= 0) {
-	    this.opacity = 1;
-	    this.holder.reset();
-	  }
-	};
-
-
-	module.exports = Steak;
-
-
-/***/ },
-/* 12 */
+/* 10 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var Util = __webpack_require__(8);
